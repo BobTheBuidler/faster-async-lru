@@ -1,13 +1,14 @@
 import asyncio
 import dataclasses
-import inspect
+import functools
 import os
 import sys
-from functools import _CacheInfo, _make_key, partial, partialmethod
+from asyncio.coroutines import _is_coroutine  # type: ignore[attr-defined]
 from typing import (
     Any,
     Callable,
     Coroutine,
+    Final,
     Generic,
     Hashable,
     Optional,
@@ -44,6 +45,16 @@ _CB = Callable[..., _Coro[_R]]
 _CBP = Union[_CB[_R], "partial[_Coro[_R]]", "partialmethod[_Coro[_R]]"]
 
 
+_CacheInfo: Final = functools._CacheInfo
+partial: Final = functools.partial
+partialmethod: Final = functools.partialmethod
+_make_key: Final = functools._make_key
+
+gather: Final = asyncio.gather
+get_running_loop: Final = asyncio.get_running_loop
+shield: Final = asyncio.shield
+
+
 @final
 class _CacheParameters(TypedDict):
     typed: bool
@@ -65,6 +76,7 @@ class _CacheItem(Generic[_R]):
 
 
 @final
+#@mypyc_attr(native_class=False)
 class _LRUCacheWrapper(Generic[_R]):
     def __init__(
         self,
@@ -74,42 +86,42 @@ class _LRUCacheWrapper(Generic[_R]):
         ttl: Optional[float],
     ) -> None:
         try:
-            self.__module__ = fn.__module__
+            self.__module__: Final = fn.__module__
         except AttributeError:
             pass
         try:
-            self.__name__ = fn.__name__
+            self.__name__: Final = fn.__name__
         except AttributeError:
             pass
         try:
-            self.__qualname__ = fn.__qualname__
+            self.__qualname__: Final = fn.__qualname__
         except AttributeError:
             pass
         try:
-            self.__doc__ = fn.__doc__
+            self.__doc__: Final = fn.__doc__
         except AttributeError:
             pass
         try:
-            self.__annotations__ = fn.__annotations__
+            self.__annotations__: Final = fn.__annotations__
         except AttributeError:
             pass
         try:
-            self.__dict__.update(fn.__dict__)
+            self.__dict__ = dict(fn.__dict__)
         except AttributeError:
             pass
         # set __wrapped__ last so we don't inadvertently copy it
         # from the wrapped function when updating __dict__
         if sys.version_info < (3, 14):
-            self._is_coroutine = _is_coroutine
-        self.__wrapped__ = fn
-        self.__maxsize = maxsize
-        self.__typed = typed
-        self.__ttl = ttl
-        self.__cache: OrderedDict[Hashable, _CacheItem[_R]] = OrderedDict()
+            self._is_coroutine: Final = _is_coroutine
+        self.__wrapped__: Final = fn
+        self.__maxsize: Final = maxsize
+        self.__typed: Final = typed
+        self.__ttl: Final = ttl
+        self.__cache: Final[OrderedDict[Hashable, _CacheItem[_R]]] = OrderedDict()
         self.__closed = False
         self.__hits = 0
         self.__misses = 0
-        self.__tasks: Set["asyncio.Task[_R]"] = set()
+        self.__tasks: Final[Set["asyncio.Task[_R]"]] = set()
 
     def cache_invalidate(self, /, *args: Hashable, **kwargs: Any) -> bool:
         key = _make_key(args, kwargs, self.__typed)
@@ -143,9 +155,9 @@ class _LRUCacheWrapper(Generic[_R]):
                 if not task.done():
                     task.cancel()
 
-        await asyncio.gather(*tasks, return_exceptions=True)
+        await gather(*tasks, return_exceptions=True)
 
-    def cache_info(self) -> _CacheInfo:
+    def cache_info(self) -> functools._CacheInfo:
         return _CacheInfo(
             self.__hits,
             self.__misses,
@@ -199,7 +211,7 @@ class _LRUCacheWrapper(Generic[_R]):
         if self.__closed:
             raise RuntimeError(f"alru_cache is closed for {self}")
 
-        loop = asyncio.get_running_loop()
+        loop = get_running_loop()
 
         key = _make_key(fn_args, fn_kwargs, self.__typed)
 
@@ -209,10 +221,11 @@ class _LRUCacheWrapper(Generic[_R]):
 
         if cache_item is not None:
             self._cache_hit(key)
-            if not cache_item.fut.done():
-                return await asyncio.shield(cache_item.fut)
+            fut = cache_item.fut
+            if not fut.done():
+                return await asyncio.shield(fut)
 
-            return cache_item.fut.result()
+            return fut.result()
 
         fut = loop.create_future()
         coro = self.__wrapped__(*fn_args, **fn_kwargs)
@@ -228,7 +241,7 @@ class _LRUCacheWrapper(Generic[_R]):
             cache_item.cancel()
 
         self._cache_miss(key)
-        return await asyncio.shield(fut)
+        return await shield(fut)
 
     def __get__(
         self, instance: _T, owner: Optional[Type[_T]]
@@ -240,6 +253,7 @@ class _LRUCacheWrapper(Generic[_R]):
 
 
 @final
+#@mypyc_attr(native_class=False)
 class _LRUCacheWrapperInstanceMethod(Generic[_R, _T]):
     def __init__(
         self,
@@ -247,36 +261,36 @@ class _LRUCacheWrapperInstanceMethod(Generic[_R, _T]):
         instance: _T,
     ) -> None:
         try:
-            self.__module__ = wrapper.__module__
+            self.__module__: Final = wrapper.__module__
         except AttributeError:
             pass
         try:
-            self.__name__ = wrapper.__name__
+            self.__name__: Final = wrapper.__name__
         except AttributeError:
             pass
         try:
-            self.__qualname__ = wrapper.__qualname__
+            self.__qualname__: Final = wrapper.__qualname__
         except AttributeError:
             pass
         try:
-            self.__doc__ = wrapper.__doc__
+            self.__doc__: Final = wrapper.__doc__
         except AttributeError:
             pass
         try:
-            self.__annotations__ = wrapper.__annotations__
+            self.__annotations__: Final = wrapper.__annotations__
         except AttributeError:
             pass
         try:
-            self.__dict__.update(wrapper.__dict__)
+            self.__dict__ = dict(wrapper.__dict__)
         except AttributeError:
             pass
         # set __wrapped__ last so we don't inadvertently copy it
         # from the wrapped function when updating __dict__
         if sys.version_info < (3, 14):
-            self._is_coroutine = _is_coroutine
-        self.__wrapped__ = wrapper.__wrapped__
-        self.__instance = instance
-        self.__wrapper = wrapper
+            self._is_coroutine: Final = _is_coroutine
+        self.__wrapped__: Final = wrapper.__wrapped__
+        self.__instance: Final = instance
+        self.__wrapper: Final = wrapper
 
     def cache_invalidate(self, /, *args: Hashable, **kwargs: Any) -> bool:
         return self.__wrapper.cache_invalidate(self.__instance, *args, **kwargs)
@@ -289,7 +303,7 @@ class _LRUCacheWrapperInstanceMethod(Generic[_R, _T]):
     ) -> None:
         await self.__wrapper.cache_close()
 
-    def cache_info(self) -> _CacheInfo:
+    def cache_info(self) -> functools._CacheInfo:
         return self.__wrapper.cache_info()
 
     def cache_parameters(self) -> _CacheParameters:
