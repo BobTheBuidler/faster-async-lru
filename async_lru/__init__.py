@@ -1,6 +1,7 @@
 import asyncio
 import dataclasses
 import inspect
+import os
 import sys
 from functools import _CacheInfo, _make_key, partial, partialmethod
 from typing import (
@@ -304,7 +305,7 @@ def _make_wrapper(
         while isinstance(origin, (partial, partialmethod)):
             origin = origin.func
 
-        if not inspect.iscoroutinefunction(origin):
+        if not asyncio.iscoroutinefunction(origin) and not os.environ.get("ASYNC_LRU_ALLOW_SYNC"):
             raise RuntimeError(f"Coroutine function is required, got {fn!r}")
 
         # functools.partialmethod support
