@@ -3,8 +3,18 @@ name: Pytest Benchmarks
 on:
   pull_request:
     branches: [master, compile]
+    paths:
+      - '**.py'
+      - '.github/workflows/benchmark.yaml'
+      - 'pyproject.toml'
+      - 'setup.py'
   push:
     branches: [master, compile]
+    paths:
+      - '**.py'
+      - '.github/workflows/benchmark.yaml'
+      - 'pyproject.toml'
+      - 'setup.py'
   workflow_dispatch:
 
 concurrency:
