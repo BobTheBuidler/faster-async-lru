@@ -7,11 +7,31 @@ on:
       - compile
       - '[0-9].[0-9]+'  # matches to backport branches, e.g. 3.6
     tags: [ 'v*' ]
+    paths:
+      - "**.py"
+      - "!/benchmarks/**.py"
+      - "!benchmark.py"
+      - "setup.py"
+      - "setup.cfg"
+      - "requirements.txt"
+      - "requirements-dev.txt"
+      - "pyproject.toml"
+      - ".github/workflows/ci-cd.yaml"
   pull_request:
     branches:
       - master
       - compile
       - '[0-9].[0-9]+'
+    paths:
+      - "**.py"
+      - "!/benchmarks/**.py"
+      - "!benchmark.py"
+      - "setup.py"
+      - "setup.cfg"
+      - "requirements.txt"
+      - "requirements-dev.txt"
+      - "pyproject.toml"
+      - ".github/workflows/ci-cd.yaml"
   schedule:
     - cron: '0 6 * * *'  # Daily 6:00 UTC
   workflow_dispatch:
