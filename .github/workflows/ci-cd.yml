@@ -86,7 +86,7 @@ jobs:
           - os: ubuntu
             pyver: "3.14"
             experimental: true
-      fail-fast: true
+      fail-fast: false
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 15
     continue-on-error: ${{ matrix.experimental }}
