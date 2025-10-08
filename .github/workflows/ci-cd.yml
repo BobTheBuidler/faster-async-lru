@@ -32,6 +32,9 @@ on:
       - "requirements-dev.txt"
       - "pyproject.toml"
       - ".github/workflows/ci-cd.yaml"
+  schedule:
+    - cron: '0 6 * * *'  # Daily 6:00 UTC
+  workflow_dispatch:
 
 
 jobs:
