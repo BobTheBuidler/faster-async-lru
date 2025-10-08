@@ -35,7 +35,7 @@ if sys.version_info < (3, 14):
     from asyncio.coroutines import _is_coroutine  # type: ignore[attr-defined]
 
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 
 __all__ = ("alru_cache",)
 
