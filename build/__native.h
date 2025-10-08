@@ -77,7 +77,6 @@ typedef struct {
     PyObject *___doc__;
     PyObject *___annotations__;
     PyObject *___dict__;
-    PyObject *__is_coroutine;
     PyObject *___wrapped__;
     PyObject *___maxsize;
     char ___typed;
@@ -99,7 +98,6 @@ typedef struct {
     PyObject *___doc__;
     PyObject *___annotations__;
     PyObject *___dict__;
-    PyObject *__is_coroutine;
     PyObject *___wrapped__;
     PyObject *___instance;
     PyObject *___wrapper;
