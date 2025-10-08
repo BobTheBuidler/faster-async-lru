@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - master
+      - compile
       - '[0-9].[0-9]+'  # matches to backport branches, e.g. 3.6
     tags: [ 'v*' ]
   pull_request:
     branches:
       - master
+      - compile
       - '[0-9].[0-9]+'
 
 
