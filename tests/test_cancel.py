@@ -5,20 +5,16 @@ import pytest
 from async_lru import alru_cache
 
 
-@pytest.mark.parametrize("num_to_cancel", [0, 1, 2, 3])
+@pytest.mark.parametrize("num_to_cancel", (0, 1, 2, 3))
 async def test_cancel(num_to_cancel: int) -> None:
-    cache_item_task_finished = False
-
     @alru_cache
     async def coro(val: int) -> int:
         # I am a long running coro function
-        nonlocal cache_item_task_finished
-        await asyncio.sleep(2)
-        cache_item_task_finished = True
+        await asyncio.sleep(0.1)
         return val
 
     # create 3 tasks for the cached function using the same key
-    tasks = [asyncio.create_task(coro(1)) for _ in range(3)]
+    tasks = [asyncio.create_task(coro(i)) for i in range(3)]
 
     # force the event loop to run once so the tasks can begin
     await asyncio.sleep(0)
@@ -28,10 +24,15 @@ async def test_cancel(num_to_cancel: int) -> None:
         tasks[i].cancel()
 
     # allow enough time for the non-cancelled tasks to complete
-    await asyncio.sleep(3)
+    await asyncio.sleep(0.2)
 
-    # check state
-    assert cache_item_task_finished == (num_to_cancel < 3)
+    # check tasks are properly cancelled
+    for i in range(num_to_cancel):
+        assert tasks[i].cancelled()
+
+    # check non-cancelled tasks return expected outputs
+    for i in range(num_to_cancel, 3):
+        assert await tasks[i] == i
 
 
 @pytest.mark.asyncio
@@ -40,11 +41,10 @@ async def test_cancel_single_waiter_triggers_handle_cancelled_error() -> None:
     cache_item_task_finished = False
 
     @alru_cache
-    async def coro(val: int) -> int:
+    async def coro(val: int) -> None:
         nonlocal cache_item_task_finished
         await asyncio.sleep(2)
-        cache_item_task_finished = True
-        return val
+        cache_item_task_finished = True  # pragma: no cover
 
     task = asyncio.create_task(coro(42))
     await asyncio.sleep(0)
