@@ -1,6 +1,7 @@
 import asyncio
 import dataclasses
 import functools
+import inspect
 import os
 import sys
 from asyncio.coroutines import _is_coroutine  # type: ignore[attr-defined]
@@ -42,7 +43,7 @@ _T = TypeVar("_T")
 _R = TypeVar("_R")
 _Coro = Coroutine[Any, Any, _R]
 _CB = Callable[..., _Coro[_R]]
-_CBP = Union[_CB[_R], "partial[_Coro[_R]]", "partialmethod[_Coro[_R]]"]
+_CBP = Union[_CB[_R], functools.partial[_Coro[_R]], functools.partialmethod[_Coro[_R]]]
 
 
 _CacheInfo: Final = functools._CacheInfo
@@ -53,6 +54,8 @@ _make_key: Final = functools._make_key
 gather: Final = asyncio.gather
 get_running_loop: Final = asyncio.get_running_loop
 shield: Final = asyncio.shield
+
+markcoroutinefunction: Final = getattr(inspect, "markcoroutinefunction", None)
 
 
 @final
@@ -352,12 +355,20 @@ def _make_wrapper(
         if hasattr(fn, "_make_unbound_method"):
             fn = fn._make_unbound_method()
 
-        wrapper = _LRUCacheWrapper(cast(_CB[_R], fn), maxsize, typed, ttl)
+        wrapper = _LRUCacheWrapper(cast(_CB[_R], fn), maxsize, typed, ttl)  # type: ignore [redundant-cast]
         if sys.version_info >= (3, 12):
-            wrapper = inspect.markcoroutinefunction(wrapper)
-        return wrapper
+            wrapper = markcoroutinefunction(wrapper)
+        return wrapper  # type: ignore [no-any-return]
 
     return wrapper
+
+
+@overload
+def alru_cache(
+    maxsize: _CBP[_R],
+    /,
+) -> _LRUCacheWrapper[_R]:
+    ...
 
 
 @overload
@@ -367,14 +378,6 @@ def alru_cache(
     *,
     ttl: Optional[float] = None,
 ) -> Callable[[_CBP[_R]], _LRUCacheWrapper[_R]]:
-    ...
-
-
-@overload
-def alru_cache(
-    maxsize: _CBP[_R],
-    /,
-) -> _LRUCacheWrapper[_R]:
     ...
 
 
