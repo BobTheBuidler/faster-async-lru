@@ -357,7 +357,7 @@ def _make_wrapper(
 
         wrapper = _LRUCacheWrapper(cast(_CB[_R], fn), maxsize, typed, ttl)  # type: ignore [redundant-cast]
         if sys.version_info >= (3, 12):
-            wrapper = markcoroutinefunction(wrapper)
+            wrapper = markcoroutinefunction(wrapper)  # type: ignore [misc]
         return wrapper  # type: ignore [no-any-return]
 
     return wrapper
