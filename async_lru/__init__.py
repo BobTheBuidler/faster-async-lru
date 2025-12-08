@@ -11,9 +11,9 @@ from typing import (
     Final,
     Generic,
     Hashable,
+    List,
     Optional,
     OrderedDict,
-    Set,
     Type,
     TypedDict,
     TypeVar,
@@ -66,8 +66,9 @@ class _CacheParameters(TypedDict):
 @final
 @dataclasses.dataclass
 class _CacheItem(Generic[_R]):
-    fut: "asyncio.Future[_R]"
+    task: "asyncio.Task[_R]"
     later_call: Optional[asyncio.Handle]
+    waiters: int
 
     def cancel(self) -> None:
         if self.later_call is not None:
@@ -121,7 +122,17 @@ class _LRUCacheWrapper(Generic[_R]):
         self.__closed = False
         self.__hits = 0
         self.__misses = 0
-        self.__tasks: Final[Set["asyncio.Task[_R]"]] = set()
+
+    @property
+    def __tasks(self) -> List["asyncio.Task[_R]"]:
+        # NOTE: I don't think we need to form a set first here but not too sure we want it for guarantees
+        return list(
+            {
+                cache_item.task
+                for cache_item in self.__cache.values()
+                if not cache_item.task.done()
+            }
+        )
 
     def cache_invalidate(self, /, *args: Hashable, **kwargs: Any) -> bool:
         key = _make_key(args, kwargs, self.__typed)
@@ -141,12 +152,11 @@ class _LRUCacheWrapper(Generic[_R]):
             if c.later_call:
                 c.later_call.cancel()
         self.__cache.clear()
-        self.__tasks.clear()
 
     async def cache_close(self, *, wait: bool = False) -> None:
         self.__closed = True
 
-        tasks = list(self.__tasks)
+        tasks = self.__tasks
         if not tasks:
             return
 
@@ -180,19 +190,8 @@ class _LRUCacheWrapper(Generic[_R]):
     def _cache_miss(self, key: Hashable) -> None:
         self.__misses += 1
 
-    def _task_done_callback(
-        self, fut: "asyncio.Future[_R]", key: Hashable, task: "asyncio.Task[_R]"
-    ) -> None:
-        self.__tasks.discard(task)
-
-        if task.cancelled():
-            fut.cancel()
-            self.__cache.pop(key, None)
-            return
-
-        exc = task.exception()
-        if exc is not None:
-            fut.set_exception(exc)
+    def _task_done_callback(self, key: Hashable, task: "asyncio.Task[_R]") -> None:
+        if task.cancelled() or task.exception() is not None:
             self.__cache.pop(key, None)
             return
 
@@ -205,9 +204,28 @@ class _LRUCacheWrapper(Generic[_R]):
                 ttl, cache.pop, key, None
             )
 
-        fut.set_result(task.result())
+    async def _shield_and_handle_cancelled_error(
+        self, cache_item: _CacheItem[_T], key: Hashable
+    ) -> _T:
+        task = cache_item.task
+        try:
+            # All waiters await the same shielded task.
+            return await asyncio.shield(task)
+        except asyncio.CancelledError:
+            # If this is the last waiter and the underlying task is not done,
+            # cancel the underlying task and remove the cache entry.
+            if cache_item.waiters == 1 and not task.done():
+                cache_item.cancel()  # Cancel TTL expiration
+                task.cancel()  # Cancel the running coroutine
+                self.__cache.pop(key, None)  # Remove from cache
+            raise
+        finally:
+            # Each logical waiter decrements waiters on exit (normal or cancelled).
+            cache_item.waiters -= 1
 
     async def __call__(self, /, *fn_args: Any, **fn_kwargs: Any) -> _R:
+        task: asyncio.Task[_R]
+
         if self.__closed:
             raise RuntimeError(f"alru_cache is closed for {self}")
 
@@ -221,27 +239,30 @@ class _LRUCacheWrapper(Generic[_R]):
 
         if cache_item is not None:
             self._cache_hit(key)
-            fut = cache_item.fut
-            if not fut.done():
-                return await asyncio.shield(fut)
+            task = cache_item.task
+            if not cache_item.task.done():
+                # Each logical waiter increments waiters on entry.
+                cache_item.waiters += 1
+                return await self._shield_and_handle_cancelled_error(cache_item, key)
 
-            return fut.result()
+            # If the task is already done, just return the result.
+            return task.result()
 
-        fut = loop.create_future()
         coro = self.__wrapped__(*fn_args, **fn_kwargs)
-        task: asyncio.Task[_R] = loop.create_task(coro)
-        self.__tasks.add(task)
-        task.add_done_callback(partial(self._task_done_callback, fut, key))
+        task = loop.create_task(coro)
+        task.add_done_callback(partial(self._task_done_callback, key))
 
-        cache[key] = _CacheItem(fut, None)
+        cache_item = _CacheItem(task, None, 1)
+        cache[key] = cache_item
 
         maxsize = self.__maxsize
         if maxsize is not None and len(cache) > maxsize:
-            dropped_key, cache_item = cache.popitem(last=False)
-            cache_item.cancel()
+            dropped_key, dropped_cache_item = cache.popitem(last=False)
+            dropped_cache_item.cancel()
 
         self._cache_miss(key)
-        return await shield(fut)
+
+        return await self._shield_and_handle_cancelled_error(cache_item, key)
 
     def __get__(
         self, instance: _T, owner: Optional[Type[_T]]
