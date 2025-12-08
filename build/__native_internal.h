@@ -1,5 +1,5 @@
-#ifndef MYPYC_NATIVE_INTERNAL_H
-#define MYPYC_NATIVE_INTERNAL_H
+#ifndef MYPYC_LIBRT_INTERNAL_H
+#define MYPYC_LIBRT_INTERNAL_H
 #include <Python.h>
 #include <CPy.h>
 #include "__native.h"
