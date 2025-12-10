@@ -113,11 +113,11 @@ class _LRUCacheWrapper(_NonNativeClass[_R]):
             self.__annotations__: Final = fn.__annotations__
         except AttributeError:
             pass
-        try:
-            self.__dict__.clear()
-            self.__dict__.update(fn.__dict__)
-        except AttributeError:
-            pass
+        #try:
+        #    self.__dict__.clear()
+        #    self.__dict__.update(fn.__dict__)
+        #except AttributeError:
+        #    pass
         # set __wrapped__ last so we don't inadvertently copy it
         # from the wrapped function when updating __dict__
         if sys.version_info < (3, 14):
@@ -312,11 +312,11 @@ class _LRUCacheWrapperInstanceMethod(_NonNativeClass[_R, _T]):
             self.__annotations__: Final = wrapper.__annotations__
         except AttributeError:
             pass
-        try:
-            self.__dict__.clear()
-            self.__dict__.update(wrapper.__dict__)
-        except AttributeError:
-            pass
+        #try:
+        #    self.__dict__.clear()
+        #    self.__dict__.update(wrapper.__dict__)
+        #except AttributeError:
+        #    pass
         # set __wrapped__ last so we don't inadvertently copy it
         # from the wrapped function when updating __dict__
         if sys.version_info < (3, 14):
