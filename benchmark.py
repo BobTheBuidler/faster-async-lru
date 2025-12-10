@@ -5,6 +5,7 @@ import async_lru
 import pytest
 
 import faster_async_lru
+from faster_async_lru._main import _LRUCacheWrapper
 
 
 try:

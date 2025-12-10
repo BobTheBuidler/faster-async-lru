@@ -3,7 +3,7 @@ from typing import Callable
 
 import pytest
 
-from faster_async_lru import _R, _LRUCacheWrapper
+from faster_async_lru._main import _R, _LRUCacheWrapper
 
 
 @pytest.fixture
