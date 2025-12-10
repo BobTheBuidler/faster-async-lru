@@ -112,7 +112,8 @@ class _LRUCacheWrapper(Generic[_R]):
         except AttributeError:
             pass
         try:
-            self.__dict__: Final = dict(fn.__dict__)
+            self.__dict__.clear()
+            self.__dict__.update(fn.__dict__)
         except AttributeError:
             pass
         # set __wrapped__ last so we don't inadvertently copy it
