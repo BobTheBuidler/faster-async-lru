@@ -126,7 +126,8 @@ class _LRUCacheWrapper(_NonNativeClass[_R]):
         self.__maxsize: Final = maxsize
         self.__typed: Final = typed
         self.__ttl: Final = ttl
-        self.__cache: Final[OrderedDict[Hashable, _CacheItem[_R]]] = OrderedDict()
+        #self.__cache: Final[OrderedDict[Hashable, _CacheItem[_R]]] = OrderedDict()
+        self.__cache: Final[OrderedDict[Hashable, _CacheItem]] = OrderedDict()
         self.__closed = False
         self.__hits = 0
         self.__misses = 0
@@ -216,7 +217,8 @@ class _LRUCacheWrapper(_NonNativeClass[_R]):
             )
 
     async def _shield_and_handle_cancelled_error(
-        self, cache_item: _CacheItem[_T], key: Hashable
+        #self, cache_item: _CacheItem[_T], key: Hashable
+        self, cache_item: _CacheItem, key: Hashable
     ) -> _T:
         task = cache_item.task
         try:
