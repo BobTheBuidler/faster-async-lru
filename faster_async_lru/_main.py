@@ -26,6 +26,8 @@ from typing import (
 
 from mypy_extensions import mypyc_attr
 
+from faster_async_lru._nocompile import _NonNativeClass
+
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -83,7 +85,7 @@ class _CacheItem(Generic[_R]):
 
 
 @final
-class _LRUCacheWrapper(Generic[_R]):
+class _LRUCacheWrapper(_NonNativeClass[_R]):
     def __init__(
         self,
         fn: _CB[_R],
@@ -284,7 +286,7 @@ class _LRUCacheWrapper(Generic[_R]):
 
 
 @final
-class _LRUCacheWrapperInstanceMethod(Generic[_R, _T]):
+class _LRUCacheWrapperInstanceMethod(_NonNativeClass[_R, _T]):
     def __init__(
         self,
         wrapper: _LRUCacheWrapper[_R],
