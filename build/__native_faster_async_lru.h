@@ -202,4 +202,9 @@ typedef struct {
     vectorcallfunc vectorcall;
 } faster_async_lru____main_____hash___3__HashedSeq_objObject;
 
+typedef struct {
+    PyObject_HEAD
+    CPyVTableItem *vtable;
+} faster_async_lru____nocompile____NonNativeClassObject;
+
 #endif

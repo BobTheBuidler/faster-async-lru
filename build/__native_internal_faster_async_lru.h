@@ -6,7 +6,7 @@
 
 int CPyGlobalsInit(void);
 
-extern PyObject *CPyStatics[151];
+extern PyObject *CPyStatics[159];
 extern const char * const CPyLit_Str[];
 extern const char * const CPyLit_Bytes[];
 extern const char * const CPyLit_Int[];
@@ -30,6 +30,10 @@ extern CPyModule *CPyModule_sys;
 extern CPyModule *CPyModule_collections;
 extern CPyModule *CPyModule_typing;
 extern CPyModule *CPyModule_mypy_extensions;
+extern CPyModule *CPyModule_faster_async_lru____nocompile__internal;
+extern CPyModule *CPyModule_faster_async_lru____nocompile;
+extern PyObject *CPyStatic__nocompile___globals;
+extern CPyModule *CPyModule_typing_extensions;
 extern char CPyDef_faster_async_lru_____top_level__(void);
 extern char CPyStatic__main____PYTHON_GTE_312;
 extern PyObject *CPyStatic__main___CancelledError;
@@ -200,4 +204,7 @@ extern PyObject *CPyPy__main_____hash___3__HashedSeq_obj_____call__(PyObject *se
 extern PyObject *CPyDef__main____make_key(PyObject *cpy_r_args, PyObject *cpy_r_kwds, char cpy_r_typed);
 extern PyObject *CPyPy__main____make_key(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern char CPyDef__main_____top_level__(void);
+extern PyTypeObject *CPyType__nocompile____NonNativeClass;
+extern PyObject *CPyDef__nocompile____NonNativeClass(void);
+extern char CPyDef__nocompile_____top_level__(void);
 #endif
