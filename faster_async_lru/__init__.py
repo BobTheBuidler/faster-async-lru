@@ -364,7 +364,7 @@ def _make_wrapper(
 
         wrapper = _LRUCacheWrapper(cast(_CB[_R], fn), maxsize, typed, ttl)
         if _PYTHON_GTE_312:
-            wrapper = markcoroutinefunction(wrapper)
+            wrapper = markcoroutinefunction(wrapper)  # type: ignore [misc]
         return wrapper
 
     return wrapper
