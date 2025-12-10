@@ -73,8 +73,8 @@ class _CacheParameters(TypedDict):
 
 @final
 @dataclasses.dataclass
-class _CacheItem(Generic[_R]):
-    task: "asyncio.Task[_R]"
+class _CacheItem: #(Generic[_R]):
+    task: "asyncio.Task" #[_R]"
     later_call: Optional[asyncio.Handle]
     waiters: int
 
