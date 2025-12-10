@@ -96,7 +96,6 @@ typedef struct {
     PyObject *___qualname__;
     PyObject *___doc__;
     PyObject *___annotations__;
-    PyObject *___dict__;
     PyObject *___wrapped__;
     PyObject *___instance;
     PyObject *___wrapper;
