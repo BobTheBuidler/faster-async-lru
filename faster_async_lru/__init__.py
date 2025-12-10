@@ -48,6 +48,7 @@ _CB = Callable[..., _Coro[_R]]
 _CBP = Union[_CB[_R], "functools.partial[_Coro[_R]]", "functools.partialmethod[_Coro[_R]]"]
 
 _PYTHON_GTE_312: Final = sys.version_info >= (3, 12)
+_PYTHON_LT_314: Final = sys.version_info < (3, 14)
 
 _CacheInfo = namedtuple("_CacheInfo", ["hits", "misses", "maxsize", "currsize"])
 
@@ -119,7 +120,7 @@ class _LRUCacheWrapper(Generic[_R]):
             pass
         # set __wrapped__ last so we don't inadvertently copy it
         # from the wrapped function when updating __dict__
-        if sys.version_info < (3, 14):
+        if _PYTHON_LT_314:
             self._is_coroutine: Final = _is_coroutine
         self.__wrapped__: Final = fn
         self.__maxsize: Final = maxsize
@@ -317,7 +318,7 @@ class _LRUCacheWrapperInstanceMethod(Generic[_R, _T]):
             pass
         # set __wrapped__ last so we don't inadvertently copy it
         # from the wrapped function when updating __dict__
-        if sys.version_info < (3, 14):
+        if _PYTHON_LT_314:
             self._is_coroutine: Final = _is_coroutine
         self.__wrapped__: Final = wrapper.__wrapped__
         self.__instance: Final = instance
