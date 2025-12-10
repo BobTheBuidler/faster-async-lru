@@ -47,6 +47,8 @@ _Coro = Coroutine[Any, Any, _R]
 _CB = Callable[..., _Coro[_R]]
 _CBP = Union[_CB[_R], "functools.partial[_Coro[_R]]", "functools.partialmethod[_Coro[_R]]"]
 
+_PYTHON_GTE_312: Final = sys.version_info >= (3, 12)
+
 _CacheInfo = namedtuple("_CacheInfo", ["hits", "misses", "maxsize", "currsize"])
 
 CancelledError: Final = asyncio.CancelledError
@@ -57,6 +59,8 @@ partialmethod: Final = functools.partialmethod
 gather: Final = asyncio.gather
 get_running_loop: Final = asyncio.get_running_loop
 shield: Final = asyncio.shield
+
+markcoroutinefunction: Final = inspect.markcoroutinefunction if _PYTHON_GTE_312 else None
 
 
 @final
@@ -359,8 +363,8 @@ def _make_wrapper(
             fn = fn._make_unbound_method()
 
         wrapper = _LRUCacheWrapper(cast(_CB[_R], fn), maxsize, typed, ttl)
-        if sys.version_info >= (3, 12):
-            wrapper = inspect.markcoroutinefunction(wrapper)
+        if _PYTHON_GTE_312:
+            wrapper = markcoroutinefunction(wrapper)
         return wrapper
 
     return wrapper
