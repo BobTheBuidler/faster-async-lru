@@ -1,7 +1,14 @@
-#ifndef MYPYC_NATIVE_H
-#define MYPYC_NATIVE_H
+#ifndef MYPYC_NATIVE_faster_async_lru_H
+#define MYPYC_NATIVE_faster_async_lru_H
 #include <Python.h>
 #include <CPy.h>
+#ifndef MYPYC_DECLARED_tuple_T1O
+#define MYPYC_DECLARED_tuple_T1O
+typedef struct tuple_T1O {
+    PyObject *f0;
+} tuple_T1O;
+#endif
+
 #ifndef MYPYC_DECLARED_tuple_T3OOO
 #define MYPYC_DECLARED_tuple_T3OOO
 typedef struct tuple_T3OOO {
@@ -36,13 +43,6 @@ typedef struct tuple_T2OO {
 } tuple_T2OO;
 #endif
 
-#ifndef MYPYC_DECLARED_tuple_T1O
-#define MYPYC_DECLARED_tuple_T1O
-typedef struct tuple_T1O {
-    PyObject *f0;
-} tuple_T1O;
-#endif
-
 #ifndef MYPYC_DECLARED_tuple_T4CIOO
 #define MYPYC_DECLARED_tuple_T4CIOO
 typedef struct tuple_T4CIOO {
@@ -66,7 +66,7 @@ typedef struct {
     PyObject *_task;
     PyObject *_later_call;
     CPyTagged _waiters;
-} faster_async_lru____CacheItemObject;
+} faster_async_lru____main____CacheItemObject;
 
 typedef struct {
     PyObject_HEAD
@@ -77,7 +77,6 @@ typedef struct {
     PyObject *___qualname__;
     PyObject *___doc__;
     PyObject *___annotations__;
-    PyObject *___dict__;
     PyObject *___wrapped__;
     PyObject *___maxsize;
     char ___typed;
@@ -86,7 +85,7 @@ typedef struct {
     char ___closed;
     CPyTagged ___hits;
     CPyTagged ___misses;
-} faster_async_lru____LRUCacheWrapperObject;
+} faster_async_lru____main____LRUCacheWrapperObject;
 
 typedef struct {
     PyObject_HEAD
@@ -97,11 +96,10 @@ typedef struct {
     PyObject *___qualname__;
     PyObject *___doc__;
     PyObject *___annotations__;
-    PyObject *___dict__;
     PyObject *___wrapped__;
     PyObject *___instance;
     PyObject *___wrapper;
-} faster_async_lru____LRUCacheWrapperInstanceMethodObject;
+} faster_async_lru____main____LRUCacheWrapperInstanceMethodObject;
 
 typedef struct {
     PyObject_HEAD
@@ -115,7 +113,7 @@ typedef struct {
     PyObject *___mypyc_generator_attribute__task;
     PyObject *___mypyc_temp__2;
     tuple_T3OOO ___mypyc_temp__3;
-} faster_async_lru___cache_close__LRUCacheWrapper_genObject;
+} faster_async_lru____main___cache_close__LRUCacheWrapper_genObject;
 
 typedef struct {
     PyObject_HEAD
@@ -129,7 +127,7 @@ typedef struct {
     tuple_T3OOO ___mypyc_temp__5;
     PyObject *___mypyc_temp__6;
     tuple_T3OOO ___mypyc_temp__7;
-} faster_async_lru____shield_and_handle_cancelled_error__LRUCacheWrapper_genObject;
+} faster_async_lru____main____shield_and_handle_cancelled_error__LRUCacheWrapper_genObject;
 
 typedef struct {
     PyObject_HEAD
@@ -151,7 +149,7 @@ typedef struct {
     PyObject *___mypyc_generator_attribute__dropped_cache_item;
     PyObject *___mypyc_temp__10;
     tuple_T3OOO ___mypyc_temp__11;
-} faster_async_lru_____call___3__LRUCacheWrapper_genObject;
+} faster_async_lru____main_____call___3__LRUCacheWrapper_genObject;
 
 typedef struct {
     PyObject_HEAD
@@ -162,7 +160,7 @@ typedef struct {
     int32_t ___mypyc_next_label__;
     PyObject *___mypyc_temp__12;
     tuple_T3OOO ___mypyc_temp__13;
-} faster_async_lru___cache_close__LRUCacheWrapperInstanceMethod_genObject;
+} faster_async_lru____main___cache_close__LRUCacheWrapperInstanceMethod_genObject;
 
 typedef struct {
     PyObject_HEAD
@@ -173,7 +171,7 @@ typedef struct {
     int32_t ___mypyc_next_label__;
     PyObject *___mypyc_temp__14;
     tuple_T3OOO ___mypyc_temp__15;
-} faster_async_lru_____call___3__LRUCacheWrapperInstanceMethod_genObject;
+} faster_async_lru____main_____call___3__LRUCacheWrapperInstanceMethod_genObject;
 
 typedef struct {
     PyObject_HEAD
@@ -183,25 +181,30 @@ typedef struct {
     char _typed;
     PyObject *_ttl;
     PyObject *_wrapper;
-} faster_async_lru____make_wrapper_envObject;
+} faster_async_lru____main____make_wrapper_envObject;
 
 typedef struct {
     PyObject_HEAD
     CPyVTableItem *vtable;
     vectorcallfunc vectorcall;
     PyObject *___mypyc_env__;
-} faster_async_lru___wrapper__make_wrapper_objObject;
+} faster_async_lru____main___wrapper__make_wrapper_objObject;
 
 typedef struct {
     PyObject_HEAD
     CPyVTableItem *vtable;
     vectorcallfunc vectorcall;
-} faster_async_lru_____init___3__HashedSeq_objObject;
+} faster_async_lru____main_____init___3__HashedSeq_objObject;
 
 typedef struct {
     PyObject_HEAD
     CPyVTableItem *vtable;
     vectorcallfunc vectorcall;
-} faster_async_lru_____hash___3__HashedSeq_objObject;
+} faster_async_lru____main_____hash___3__HashedSeq_objObject;
+
+typedef struct {
+    PyObject_HEAD
+    CPyVTableItem *vtable;
+} faster_async_lru____nocompile____NonNativeClassObject;
 
 #endif

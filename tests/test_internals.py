@@ -4,7 +4,7 @@ from unittest import mock
 
 import pytest
 
-from faster_async_lru import _LRUCacheWrapper
+from faster_async_lru._main import _LRUCacheWrapper
 
 
 async def test_done_callback_cancelled() -> None:
