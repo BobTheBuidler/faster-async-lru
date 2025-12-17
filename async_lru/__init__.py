@@ -149,6 +149,14 @@ class _LRUCacheWrapper(Generic[_R]):
             return False
         else:
             cache_item.cancel()
+            argstring = ""
+            if args:
+                argstring += ", ".join(map(repr, args))
+            if kwargs:
+                if argstring:
+                    argstring += ", "
+                argstring += ", ".join(map('='.join, kwargs.items()))
+            cache_item.task.cancel("cache invalidated for ({argstring})") 
             return True
 
     def cache_clear(self) -> None:
