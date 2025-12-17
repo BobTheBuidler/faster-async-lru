@@ -170,7 +170,7 @@ class _LRUCacheWrapper(Generic[_R]):
         if not wait:
             for task in tasks:
                 if not task.done():
-                    task.cancel()
+                    task.cancel(f"{self} is closed")
 
         await gather(*tasks, return_exceptions=True)
 
@@ -226,7 +226,7 @@ class _LRUCacheWrapper(Generic[_R]):
             # cancel the underlying task and remove the cache entry.
             if cache_item.waiters == 1 and not task.done():
                 cache_item.cancel()  # Cancel TTL expiration
-                task.cancel()  # Cancel the running coroutine
+                task.cancel(f"{task} has no more waiters")  # Cancel the running coroutine
                 self.__cache.pop(key, None)  # Remove from cache
             raise
         finally:
