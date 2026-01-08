@@ -60,7 +60,7 @@ gather: Final = asyncio.gather
 get_running_loop: Final = asyncio.get_running_loop
 shield: Final = asyncio.shield
 
-markcoroutinefunction: Final = inspect.markcoroutinefunction if _PYTHON_GTE_312 else None
+markcoroutinefunction: Final = inspect.markcoroutinefunction if _PYTHON_GTE_312 else None  # type: ignore [attr-defined]
 
 
 @final
