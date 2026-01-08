@@ -451,9 +451,9 @@ def _make_key(args: tuple, kwds: dict, typed: bool) -> Union[str, int, _HashedSe
         for item in kwds.items():
             key += item
     if typed:
-        key += tuple(type(v) for v in args)
+        key += tuple(map(type, args))
         if kwds:
-            key += tuple(type(v) for v in kwds.values())
+            key += tuple(map(type, kwds.values()))
     elif len(key) == 1:
         solearg: Any = key[0]
         argtype = type(solearg)
