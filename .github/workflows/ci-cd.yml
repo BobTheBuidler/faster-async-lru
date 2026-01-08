@@ -4,12 +4,39 @@ on:
   push:
     branches:
       - master
+      - compile
       - '[0-9].[0-9]+'  # matches to backport branches, e.g. 3.6
     tags: [ 'v*' ]
+    paths:
+      - "**.py"
+      - "!/benchmarks/**.py"
+      - "!benchmark.py"
+      - "setup.py"
+      - "setup.cfg"
+      - "requirements.txt"
+      - "requirements-dev.txt"
+      - "pyproject.toml"
+      - "tox.ini"
+      - ".github/workflows/ci-cd.yml"
   pull_request:
     branches:
       - master
+      - compile
       - '[0-9].[0-9]+'
+    paths:
+      - "**.py"
+      - "!/benchmarks/**.py"
+      - "!benchmark.py"
+      - "setup.py"
+      - "setup.cfg"
+      - "requirements.txt"
+      - "requirements-dev.txt"
+      - "pyproject.toml"
+      - "tox.ini"
+      - ".github/workflows/ci-cd.yml"
+  schedule:
+    - cron: '0 6 * * *'  # Daily 6:00 UTC
+  workflow_dispatch:
 
 
 jobs:
@@ -51,7 +78,7 @@ jobs:
     name: Test
     strategy:
       matrix:
-        pyver: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        pyver: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t']
         os: [ubuntu, macos, windows]
         experimental: [false]
         include:
@@ -61,7 +88,7 @@ jobs:
           - os: ubuntu
             pyver: "3.14"
             experimental: true
-      fail-fast: true
+      fail-fast: false
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 15
     continue-on-error: ${{ matrix.experimental }}
@@ -146,7 +173,7 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
 
     - name: Sign the dists with Sigstore
-      uses: sigstore/gh-action-sigstore-python@v3.0.1
+      uses: sigstore/gh-action-sigstore-python@v3.1.0
       with:
         inputs: >-
           ./dist/*.tar.gz

@@ -1,9 +1,10 @@
 -e .
+-r requirements-test.txt
 
-coverage==7.10.6
+coverage==7.10.7
+mypy-extensions==1.1.0
 pytest==8.4.2
 pytest-asyncio==1.2.0
 pytest-benchmark
 pytest-codspeed==4.0.0
 pytest-cov==7.0.0
-pytest-timeout==2.4.0

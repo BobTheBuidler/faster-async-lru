@@ -63,8 +63,9 @@ typedef struct tuple_T0 {
 typedef struct {
     PyObject_HEAD
     CPyVTableItem *vtable;
-    PyObject *_fut;
+    PyObject *_task;
     PyObject *_later_call;
+    CPyTagged _waiters;
 } faster_async_lru____CacheItemObject;
 
 typedef struct {
@@ -77,7 +78,6 @@ typedef struct {
     PyObject *___doc__;
     PyObject *___annotations__;
     PyObject *___dict__;
-    PyObject *__is_coroutine;
     PyObject *___wrapped__;
     PyObject *___maxsize;
     char ___typed;
@@ -86,7 +86,6 @@ typedef struct {
     char ___closed;
     CPyTagged ___hits;
     CPyTagged ___misses;
-    PyObject *___tasks;
 } faster_async_lru____LRUCacheWrapperObject;
 
 typedef struct {
@@ -99,7 +98,6 @@ typedef struct {
     PyObject *___doc__;
     PyObject *___annotations__;
     PyObject *___dict__;
-    PyObject *__is_coroutine;
     PyObject *___wrapped__;
     PyObject *___instance;
     PyObject *___wrapper;
@@ -123,22 +121,36 @@ typedef struct {
     PyObject_HEAD
     CPyVTableItem *vtable;
     PyObject *___mypyc_generator_attribute__self;
+    PyObject *___mypyc_generator_attribute__cache_item;
+    PyObject *___mypyc_generator_attribute__key;
+    int32_t ___mypyc_next_label__;
+    PyObject *___mypyc_generator_attribute__task;
+    PyObject *___mypyc_temp__4;
+    tuple_T3OOO ___mypyc_temp__5;
+    PyObject *___mypyc_temp__6;
+    tuple_T3OOO ___mypyc_temp__7;
+} faster_async_lru____shield_and_handle_cancelled_error__LRUCacheWrapper_genObject;
+
+typedef struct {
+    PyObject_HEAD
+    CPyVTableItem *vtable;
+    PyObject *___mypyc_generator_attribute__self;
     PyObject *___mypyc_generator_attribute__fn_args;
     PyObject *___mypyc_generator_attribute__fn_kwargs;
     int32_t ___mypyc_next_label__;
+    PyObject *___mypyc_generator_attribute__task;
     PyObject *___mypyc_generator_attribute__loop;
     PyObject *___mypyc_generator_attribute__key;
     PyObject *___mypyc_generator_attribute__cache;
     PyObject *___mypyc_generator_attribute__cache_item;
-    PyObject *___mypyc_generator_attribute__fut;
-    PyObject *___mypyc_temp__4;
-    tuple_T3OOO ___mypyc_temp__5;
+    PyObject *___mypyc_temp__8;
+    tuple_T3OOO ___mypyc_temp__9;
     PyObject *___mypyc_generator_attribute__coro;
-    PyObject *___mypyc_generator_attribute__task;
     PyObject *___mypyc_generator_attribute__maxsize;
     PyObject *___mypyc_generator_attribute__dropped_key;
-    PyObject *___mypyc_temp__6;
-    tuple_T3OOO ___mypyc_temp__7;
+    PyObject *___mypyc_generator_attribute__dropped_cache_item;
+    PyObject *___mypyc_temp__10;
+    tuple_T3OOO ___mypyc_temp__11;
 } faster_async_lru_____call___3__LRUCacheWrapper_genObject;
 
 typedef struct {
@@ -148,8 +160,8 @@ typedef struct {
     char ___mypyc_generator_attribute__cancel;
     char ___mypyc_generator_attribute__return_exceptions;
     int32_t ___mypyc_next_label__;
-    PyObject *___mypyc_temp__8;
-    tuple_T3OOO ___mypyc_temp__9;
+    PyObject *___mypyc_temp__12;
+    tuple_T3OOO ___mypyc_temp__13;
 } faster_async_lru___cache_close__LRUCacheWrapperInstanceMethod_genObject;
 
 typedef struct {
@@ -159,8 +171,8 @@ typedef struct {
     PyObject *___mypyc_generator_attribute__fn_args;
     PyObject *___mypyc_generator_attribute__fn_kwargs;
     int32_t ___mypyc_next_label__;
-    PyObject *___mypyc_temp__10;
-    tuple_T3OOO ___mypyc_temp__11;
+    PyObject *___mypyc_temp__14;
+    tuple_T3OOO ___mypyc_temp__15;
 } faster_async_lru_____call___3__LRUCacheWrapperInstanceMethod_genObject;
 
 typedef struct {

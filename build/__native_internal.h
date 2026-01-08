@@ -1,5 +1,5 @@
-#ifndef MYPYC_NATIVE_INTERNAL_H
-#define MYPYC_NATIVE_INTERNAL_H
+#ifndef MYPYC_LIBRT_INTERNAL_H
+#define MYPYC_LIBRT_INTERNAL_H
 #include <Python.h>
 #include <CPy.h>
 #include "__native.h"
@@ -27,12 +27,15 @@ extern CPyModule *CPyModule_sys;
 extern CPyModule *CPyModule_collections;
 extern CPyModule *CPyModule_typing;
 extern CPyModule *CPyModule_mypy_extensions;
-extern CPyModule *CPyModule_asyncio___coroutines;
+extern char CPyStatic__PYTHON_GTE_312;
+extern PyObject *CPyStatic_CancelledError;
 extern PyObject *CPyStatic_partial;
 extern PyObject *CPyStatic_partialmethod;
 extern PyObject *CPyStatic_gather;
 extern PyObject *CPyStatic_get_running_loop;
 extern PyObject *CPyStatic_shield;
+extern PyObject *CPyStatic_markcoroutinefunction;
+extern tuple_T1O CPyStatic__KW_MARK;
 extern PyTypeObject *CPyType__CacheParameters;
 extern PyTypeObject *CPyType__CacheItem;
 extern PyObject *CPyDef__CacheItem(PyObject *cpy_r_args, PyObject *cpy_r_kwargs);
@@ -44,6 +47,9 @@ extern PyTypeObject *CPyType__HashedSeq;
 extern PyTypeObject *CPyType_cache_close__LRUCacheWrapper_gen;
 extern PyObject *CPyDef_cache_close__LRUCacheWrapper_gen(void);
 extern CPyThreadLocal faster_async_lru___cache_close__LRUCacheWrapper_genObject *cache_close__LRUCacheWrapper_gen_free_instance;
+extern PyTypeObject *CPyType__shield_and_handle_cancelled_error__LRUCacheWrapper_gen;
+extern PyObject *CPyDef__shield_and_handle_cancelled_error__LRUCacheWrapper_gen(void);
+extern CPyThreadLocal faster_async_lru____shield_and_handle_cancelled_error__LRUCacheWrapper_genObject *_shield_and_handle_cancelled_error__LRUCacheWrapper_gen_free_instance;
 extern PyTypeObject *CPyType___call___3__LRUCacheWrapper_gen;
 extern PyObject *CPyDef___call___3__LRUCacheWrapper_gen(void);
 extern CPyThreadLocal faster_async_lru_____call___3__LRUCacheWrapper_genObject *__call___3__LRUCacheWrapper_gen_free_instance;
@@ -69,6 +75,8 @@ extern char CPyDef__CacheItem___cancel(PyObject *cpy_r_self);
 extern PyObject *CPyPy__CacheItem___cancel(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern char CPyDef__LRUCacheWrapper_____init__(PyObject *cpy_r_self, PyObject *cpy_r_fn, PyObject *cpy_r_maxsize, char cpy_r_typed, PyObject *cpy_r_ttl);
 extern PyObject *CPyPy__LRUCacheWrapper_____init__(PyObject *self, PyObject *args, PyObject *kw);
+extern PyObject *CPyDef__LRUCacheWrapper_____tasks(PyObject *cpy_r_self);
+extern PyObject *CPyPy__LRUCacheWrapper_____tasks(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern char CPyDef__LRUCacheWrapper___cache_invalidate(PyObject *cpy_r_self, PyObject *cpy_r_args, PyObject *cpy_r_kwargs);
 extern PyObject *CPyPy__LRUCacheWrapper___cache_invalidate(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern char CPyDef__LRUCacheWrapper___cache_clear(PyObject *cpy_r_self);
@@ -96,8 +104,23 @@ extern char CPyDef__LRUCacheWrapper____cache_hit(PyObject *cpy_r_self, PyObject 
 extern PyObject *CPyPy__LRUCacheWrapper____cache_hit(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern char CPyDef__LRUCacheWrapper____cache_miss(PyObject *cpy_r_self, PyObject *cpy_r_key);
 extern PyObject *CPyPy__LRUCacheWrapper____cache_miss(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
-extern char CPyDef__LRUCacheWrapper____task_done_callback(PyObject *cpy_r_self, PyObject *cpy_r_fut, PyObject *cpy_r_key, PyObject *cpy_r_task);
+extern char CPyDef__LRUCacheWrapper____task_done_callback(PyObject *cpy_r_self, PyObject *cpy_r_key, PyObject *cpy_r_task);
 extern PyObject *CPyPy__LRUCacheWrapper____task_done_callback(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
+extern PyObject *CPyDef__shield_and_handle_cancelled_error__LRUCacheWrapper_gen_____mypyc_generator_helper__(PyObject *cpy_r___mypyc_self__, PyObject *cpy_r_type, PyObject *cpy_r_value, PyObject *cpy_r_traceback, PyObject *cpy_r_arg, PyObject **cpy_r_stop_iter_ptr);
+extern PyObject *CPyDef__shield_and_handle_cancelled_error__LRUCacheWrapper_gen_____next__(PyObject *cpy_r___mypyc_self__);
+extern PyObject *CPyPy__shield_and_handle_cancelled_error__LRUCacheWrapper_gen_____next__(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
+extern PyObject *CPyDef__shield_and_handle_cancelled_error__LRUCacheWrapper_gen___send(PyObject *cpy_r___mypyc_self__, PyObject *cpy_r_arg);
+extern PyObject *CPyPy__shield_and_handle_cancelled_error__LRUCacheWrapper_gen___send(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
+extern PyObject *CPyDef__shield_and_handle_cancelled_error__LRUCacheWrapper_gen_____iter__(PyObject *cpy_r___mypyc_self__);
+extern PyObject *CPyPy__shield_and_handle_cancelled_error__LRUCacheWrapper_gen_____iter__(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
+extern PyObject *CPyDef__shield_and_handle_cancelled_error__LRUCacheWrapper_gen___throw(PyObject *cpy_r___mypyc_self__, PyObject *cpy_r_type, PyObject *cpy_r_value, PyObject *cpy_r_traceback);
+extern PyObject *CPyPy__shield_and_handle_cancelled_error__LRUCacheWrapper_gen___throw(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
+extern PyObject *CPyDef__shield_and_handle_cancelled_error__LRUCacheWrapper_gen___close(PyObject *cpy_r___mypyc_self__);
+extern PyObject *CPyPy__shield_and_handle_cancelled_error__LRUCacheWrapper_gen___close(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
+extern PyObject *CPyDef__shield_and_handle_cancelled_error__LRUCacheWrapper_gen_____await__(PyObject *cpy_r___mypyc_self__);
+extern PyObject *CPyPy__shield_and_handle_cancelled_error__LRUCacheWrapper_gen_____await__(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
+extern PyObject *CPyDef__LRUCacheWrapper____shield_and_handle_cancelled_error(PyObject *cpy_r_self, PyObject *cpy_r_cache_item, PyObject *cpy_r_key);
+extern PyObject *CPyPy__LRUCacheWrapper____shield_and_handle_cancelled_error(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern PyObject *CPyDef___call___3__LRUCacheWrapper_gen_____mypyc_generator_helper__(PyObject *cpy_r___mypyc_self__, PyObject *cpy_r_type, PyObject *cpy_r_value, PyObject *cpy_r_traceback, PyObject *cpy_r_arg, PyObject **cpy_r_stop_iter_ptr);
 extern PyObject *CPyDef___call___3__LRUCacheWrapper_gen_____next__(PyObject *cpy_r___mypyc_self__);
 extern PyObject *CPyPy___call___3__LRUCacheWrapper_gen_____next__(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
