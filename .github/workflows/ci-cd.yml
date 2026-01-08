@@ -16,6 +16,7 @@ on:
       - "requirements.txt"
       - "requirements-dev.txt"
       - "pyproject.toml"
+      - "tox.ini"
       - ".github/workflows/ci-cd.yaml"
   pull_request:
     branches:
@@ -31,6 +32,7 @@ on:
       - "requirements.txt"
       - "requirements-dev.txt"
       - "pyproject.toml"
+      - "tox.ini"
       - ".github/workflows/ci-cd.yaml"
   schedule:
     - cron: '0 6 * * *'  # Daily 6:00 UTC
