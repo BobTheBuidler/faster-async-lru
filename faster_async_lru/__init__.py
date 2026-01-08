@@ -427,6 +427,9 @@ class _HashedSeq(list[Any]):
         return self.hashvalue
 
 
+_KW_MARK: Final = (object(),)
+
+
 def _make_key(args: tuple, kwds: dict, typed: bool) -> Union[str, int, _HashedSeq]:  # type: ignore [type-arg]
     """Make a cache key from optionally typed positional and keyword arguments
 
@@ -444,7 +447,7 @@ def _make_key(args: tuple, kwds: dict, typed: bool) -> Union[str, int, _HashedSe
     # distinct call from f(y=2, x=1) which will be cached separately.
     key = args
     if kwds:
-        key += (object(),)
+        key += _KW_MARK
         for item in kwds.items():
             key += item
     if typed:
