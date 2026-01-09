@@ -11,14 +11,6 @@ typedef struct tuple_T3OOO {
 } tuple_T3OOO;
 #endif
 
-#ifndef MYPYC_DECLARED_tuple_T2II
-#define MYPYC_DECLARED_tuple_T2II
-typedef struct tuple_T2II {
-    CPyTagged f0;
-    CPyTagged f1;
-} tuple_T2II;
-#endif
-
 #ifndef MYPYC_DECLARED_tuple_T3CIO
 #define MYPYC_DECLARED_tuple_T3CIO
 typedef struct tuple_T3CIO {
@@ -51,6 +43,14 @@ typedef struct tuple_T4CIOO {
     PyObject *f2;
     PyObject *f3;
 } tuple_T4CIOO;
+#endif
+
+#ifndef MYPYC_DECLARED_tuple_T2II
+#define MYPYC_DECLARED_tuple_T2II
+typedef struct tuple_T2II {
+    CPyTagged f0;
+    CPyTagged f1;
+} tuple_T2II;
 #endif
 
 #ifndef MYPYC_DECLARED_tuple_T0
@@ -86,6 +86,7 @@ typedef struct {
     char ___closed;
     CPyTagged ___hits;
     CPyTagged ___misses;
+    PyObject *__is_coroutine;
 } faster_async_lru____LRUCacheWrapperObject;
 
 typedef struct {
@@ -101,6 +102,7 @@ typedef struct {
     PyObject *___wrapped__;
     PyObject *___instance;
     PyObject *___wrapper;
+    PyObject *__is_coroutine;
 } faster_async_lru____LRUCacheWrapperInstanceMethodObject;
 
 typedef struct {
