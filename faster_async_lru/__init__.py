@@ -121,7 +121,7 @@ class _LRUCacheWrapper(Generic[_R]):
         # set __wrapped__ last so we don't inadvertently copy it
         # from the wrapped function when updating __dict__
         if _PYTHON_LT_314:
-            self._is_coroutine: Final = _is_coroutine
+            self._is_coroutine: Final = _is_coroutine  # type: ignore [name-defined]
         self.__wrapped__: Final = fn
         self.__maxsize: Final = maxsize
         self.__typed: Final = typed
