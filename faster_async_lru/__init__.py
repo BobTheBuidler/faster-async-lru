@@ -70,7 +70,7 @@ class _CacheParameters(TypedDict):
 class _CacheItem(Generic[_R]):
     def __init__(self, task: "asyncio.Task[_R]") -> None:
         self.task: Final = task
-        self.later_call = None
+        self.later_call: Optional[asyncio.TimerHandle] = None
         self.waiters = 1
 
     def cancel(self) -> None:
