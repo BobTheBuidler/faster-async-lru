@@ -1,5 +1,4 @@
 import asyncio
-import dataclasses
 import functools
 import inspect
 import os
@@ -68,11 +67,11 @@ class _CacheParameters(TypedDict):
 
 
 @final
-@dataclasses.dataclass
 class _CacheItem(Generic[_R]):
-    task: "asyncio.Task[_R]"
-    later_call: Optional[asyncio.Handle]
-    waiters: int
+    def __init__(self, task: "asyncio.Task[_R]") -> None:
+        self.task: Final = task
+        self.later_call = None
+        self.waiters = 1
 
     def cancel(self) -> None:
         if self.later_call is not None:
