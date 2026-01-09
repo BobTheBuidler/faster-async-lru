@@ -4,18 +4,13 @@ import functools
 import inspect
 import os
 import sys
-from collections import namedtuple
+from collections import OrderedDict, namedtuple
+from collections.abc import Callable, Coroutine, Hashable
 from typing import (
     Any,
-    Callable,
-    Coroutine,
     Final,
     Generic,
-    Hashable,
-    List,
     Optional,
-    OrderedDict,
-    Type,
     TypedDict,
     TypeVar,
     Union,
@@ -132,7 +127,7 @@ class _LRUCacheWrapper(Generic[_R]):
         self.__misses = 0
 
     @property
-    def __tasks(self) -> List["asyncio.Task[_R]"]:
+    def __tasks(self) -> list["asyncio.Task[_R]"]:
         # NOTE: I don't think we need to form a set first here but not too sure we want it for guarantees
         return list(
             {
@@ -277,7 +272,7 @@ class _LRUCacheWrapper(Generic[_R]):
         return await self._shield_and_handle_cancelled_error(cache_item, key)
 
     def __get__(
-        self, instance: _T, owner: Optional[Type[_T]]
+        self, instance: _T, owner: Optional[type[_T]]
     ) -> Union[Self, "_LRUCacheWrapperInstanceMethod[_R, _T]"]:
         if owner is None:
             return self
