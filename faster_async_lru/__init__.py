@@ -4,18 +4,13 @@ import functools
 import inspect
 import os
 import sys
-from collections import namedtuple
+from collections import OrderedDict, namedtuple
+from collections.abc import Callable, Coroutine, Hashable
 from typing import (
     Any,
-    Callable,
-    Coroutine,
     Final,
     Generic,
-    Hashable,
-    List,
     Optional,
-    OrderedDict,
-    Type,
     TypedDict,
     TypeVar,
     Union,
@@ -48,6 +43,7 @@ _CB = Callable[..., _Coro[_R]]
 _CBP = Union[_CB[_R], "functools.partial[_Coro[_R]]", "functools.partialmethod[_Coro[_R]]"]
 
 _PYTHON_GTE_312: Final = sys.version_info >= (3, 12)
+_PYTHON_LT_314: Final = sys.version_info < (3, 14)
 
 _CacheInfo = namedtuple("_CacheInfo", ["hits", "misses", "maxsize", "currsize"])
 
@@ -119,8 +115,8 @@ class _LRUCacheWrapper(Generic[_R]):
             pass
         # set __wrapped__ last so we don't inadvertently copy it
         # from the wrapped function when updating __dict__
-        if sys.version_info < (3, 14):
-            self._is_coroutine: Final = _is_coroutine
+        if _PYTHON_LT_314:
+            self._is_coroutine: Final = _is_coroutine  # type: ignore [name-defined]
         self.__wrapped__: Final = fn
         self.__maxsize: Final = maxsize
         self.__typed: Final = typed
@@ -131,7 +127,7 @@ class _LRUCacheWrapper(Generic[_R]):
         self.__misses = 0
 
     @property
-    def __tasks(self) -> List["asyncio.Task[_R]"]:
+    def __tasks(self) -> list["asyncio.Task[_R]"]:
         # NOTE: I don't think we need to form a set first here but not too sure we want it for guarantees
         return list(
             {
@@ -276,7 +272,7 @@ class _LRUCacheWrapper(Generic[_R]):
         return await self._shield_and_handle_cancelled_error(cache_item, key)
 
     def __get__(
-        self, instance: _T, owner: Optional[Type[_T]]
+        self, instance: _T, owner: Optional[type[_T]]
     ) -> Union[Self, "_LRUCacheWrapperInstanceMethod[_R, _T]"]:
         if owner is None:
             return self
@@ -317,8 +313,8 @@ class _LRUCacheWrapperInstanceMethod(Generic[_R, _T]):
             pass
         # set __wrapped__ last so we don't inadvertently copy it
         # from the wrapped function when updating __dict__
-        if sys.version_info < (3, 14):
-            self._is_coroutine: Final = _is_coroutine
+        if _PYTHON_LT_314:
+            self._is_coroutine: Final = _is_coroutine  # type: ignore [name-defined]
         self.__wrapped__: Final = wrapper.__wrapped__
         self.__instance: Final = instance
         self.__wrapper: Final = wrapper
