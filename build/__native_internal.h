@@ -25,6 +25,7 @@ extern CPyModule *CPyModule_inspect;
 extern CPyModule *CPyModule_os;
 extern CPyModule *CPyModule_sys;
 extern CPyModule *CPyModule_collections;
+extern CPyModule *CPyModule_collections___abc;
 extern CPyModule *CPyModule_typing;
 extern CPyModule *CPyModule_mypy_extensions;
 extern char CPyStatic__PYTHON_GTE_312;
