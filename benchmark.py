@@ -1,10 +1,19 @@
 import asyncio
+import importlib.machinery
 from typing import Any, Callable
 
 import async_lru
 import pytest
 
 import faster_async_lru
+
+
+origin = faster_async_lru.__spec__.origin  # type: ignore[union-attr]
+assert origin is not None
+assert origin.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)), (
+    "Expected faster_async_lru to be loaded from a compiled extension module, "
+    f"got {origin!r}."
+)
 
 
 try:
