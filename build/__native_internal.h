@@ -6,7 +6,7 @@
 
 int CPyGlobalsInit(void);
 
-extern PyObject *CPyStatics[154];
+extern PyObject *CPyStatics[149];
 extern const char * const CPyLit_Str[];
 extern const char * const CPyLit_Bytes[];
 extern const char * const CPyLit_Int[];
@@ -19,7 +19,6 @@ extern CPyModule *CPyModule_faster_async_lru;
 extern PyObject *CPyStatic_globals;
 extern CPyModule *CPyModule_builtins;
 extern CPyModule *CPyModule_asyncio;
-extern CPyModule *CPyModule_dataclasses;
 extern CPyModule *CPyModule_functools;
 extern CPyModule *CPyModule_inspect;
 extern CPyModule *CPyModule_os;
@@ -40,7 +39,7 @@ extern PyObject *CPyStatic_markcoroutinefunction;
 extern tuple_T1O CPyStatic__KW_MARK;
 extern PyTypeObject *CPyType__CacheParameters;
 extern PyTypeObject *CPyType__CacheItem;
-extern PyObject *CPyDef__CacheItem(PyObject *cpy_r_args, PyObject *cpy_r_kwargs);
+extern PyObject *CPyDef__CacheItem(PyObject *cpy_r_task);
 extern PyTypeObject *CPyType__LRUCacheWrapper;
 extern PyObject *CPyDef__LRUCacheWrapper(PyObject *cpy_r_fn, PyObject *cpy_r_maxsize, char cpy_r_typed, PyObject *cpy_r_ttl);
 extern PyTypeObject *CPyType__LRUCacheWrapperInstanceMethod;
@@ -73,6 +72,8 @@ extern CPyThreadLocal faster_async_lru_____init___3__HashedSeq_objObject *__init
 extern PyTypeObject *CPyType___hash___3__HashedSeq_obj;
 extern PyObject *CPyDef___hash___3__HashedSeq_obj(void);
 extern CPyThreadLocal faster_async_lru_____hash___3__HashedSeq_objObject *__hash___3__HashedSeq_obj_free_instance;
+extern char CPyDef__CacheItem_____init__(PyObject *cpy_r_self, PyObject *cpy_r_task);
+extern PyObject *CPyPy__CacheItem_____init__(PyObject *self, PyObject *args, PyObject *kw);
 extern char CPyDef__CacheItem___cancel(PyObject *cpy_r_self);
 extern PyObject *CPyPy__CacheItem___cancel(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern char CPyDef__LRUCacheWrapper_____init__(PyObject *cpy_r_self, PyObject *cpy_r_fn, PyObject *cpy_r_maxsize, char cpy_r_typed, PyObject *cpy_r_ttl);
