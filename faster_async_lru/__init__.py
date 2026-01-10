@@ -257,7 +257,7 @@ class _LRUCacheWrapper(Generic[_R]):
         task = loop.create_task(coro)
         task.add_done_callback(partial(self._task_done_callback, key))
 
-        cache_item = _CacheItem(task, None, 1)
+        cache_item = _CacheItem(task)
         self.__cache[key] = cache_item
 
         maxsize = self.__maxsize
