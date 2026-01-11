@@ -54,6 +54,6 @@ jobs:
       - name: Run the benchmarks
         uses: CodSpeedHQ/action@v4
         with:
-          mode: simulation
+          mode: instrumentation
           run: pytest -c .empty-pytest.ini --codspeed benchmark.py -k "test_faster_" --timeout=0
           token: ${{ secrets.CODSPEED_TOKEN }}
