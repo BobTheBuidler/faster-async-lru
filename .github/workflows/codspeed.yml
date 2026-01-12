@@ -8,7 +8,7 @@ on:
       - compile
     paths:
       - '**.py'
-      - '.github/workflows/codspeed.yaml'
+      - '.github/workflows/codspeed.yml'
       - 'pyproject.toml'
       - 'setup.py'
   pull_request:
