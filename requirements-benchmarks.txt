@@ -1,4 +1,5 @@
 -e .
 -r requirements-test.txt
 
+async-lru==2.0.5
 pytest-codspeed==4.2.0
