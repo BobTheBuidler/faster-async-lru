@@ -8,7 +8,7 @@ on:
       - compile
     paths:
       - '**.py'
-      - '.github/workflows/codspeed.yaml'
+      - '.github/workflows/codspeed.yml'
       - 'pyproject.toml'
       - 'setup.py'
   pull_request:
@@ -18,7 +18,7 @@ on:
       - compile
     paths:
       - '**.py'
-      - '.github/workflows/codspeed.yaml'
+      - '.github/workflows/codspeed.yml'
       - 'pyproject.toml'
       - 'setup.py'
   workflow_dispatch:
@@ -38,8 +38,11 @@ jobs:
           cache: 'pip'
           cache-dependency-path: '**/requirements*.txt'
 
-      - name: Install dependencies
-        run: pip install -r requirements-dev.txt
+      - name: Install benchmark requirements
+        run: pip install -r requirements-benchmarks.txt
+        
+      - name: Install faster async lru
+        run: pip install .
 
       - name: Remove python files
         run: rm -r faster_async_lru
