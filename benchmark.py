@@ -500,13 +500,12 @@ def test_internal_task_done_callback_microbenchmark(
             pass
 
     iterations = range(1000)
-    create_future = loop.create_future
     callback = func._task_done_callback
 
     @benchmark
     def run() -> None:
         for i in iterations:
-            callback(create_future(), i, task)
+            callback(i, task)
 
 
 @pytest.mark.parametrize("func", only_faster_funcs, ids=func_ids)
@@ -541,10 +540,9 @@ def test_faster_internal_task_done_callback_microbenchmark(
             pass
 
     iterations = range(1000)
-    create_future = loop.create_future
     callback = func._task_done_callback
 
     @benchmark
     def run() -> None:
         for i in iterations:
-            callback(create_future(), i, task)
+            callback(i, task)
