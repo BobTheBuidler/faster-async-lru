@@ -39,7 +39,7 @@ jobs:
           cache-dependency-path: '**/requirements*.txt'
 
       - name: Install dependencies
-        run: pip install -r requirements-dev.txt
+        run: pip install -r requirements-benchmarks.txt
 
       - name: Remove python files
         run: rm -r faster_async_lru
