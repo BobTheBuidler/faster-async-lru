@@ -1,6 +1,7 @@
 import asyncio
 import gc
 import logging
+import weakref
 from functools import partial
 from unittest import mock
 
@@ -43,30 +44,43 @@ async def test_done_callback_exception() -> None:
     assert task not in wrapped._LRUCacheWrapper__tasks  # type: ignore[attr-defined]
 
 
-async def test_done_callback_exception_logs(caplog: pytest.LogCaptureFixture) -> None:
+def test_done_callback_exception_logs(caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level(logging.ERROR, logger="asyncio")
+
     wrapped = _LRUCacheWrapper(mock.ANY, None, False, None)
-    loop = asyncio.get_running_loop()
+    loop = asyncio.new_event_loop()
+    task_ref: weakref.ReferenceType[asyncio.Task[object]] | None = None
 
     async def boom() -> None:
         await asyncio.sleep(0)
         raise RuntimeError("boom")
 
-    key = object()
-    task = loop.create_task(boom())
-    wrapped._LRUCacheWrapper__cache[key] = _CacheItem(task, None, 1)  # type: ignore[attr-defined]
-    task.add_done_callback(partial(wrapped._task_done_callback, key))
+    async def runner() -> None:
+        nonlocal task_ref
+        key = object()
+        task = loop.create_task(boom())
+        task_ref = weakref.ref(task)
+        wrapped._LRUCacheWrapper__cache[key] = _CacheItem(task, None, 1)  # type: ignore[attr-defined]
+        task.add_done_callback(partial(wrapped._task_done_callback, key))
 
-    await asyncio.sleep(0)
+        while not task.done():
+            await asyncio.sleep(0)
+        await asyncio.sleep(0)
 
-    assert key not in wrapped._LRUCacheWrapper__cache  # type: ignore[attr-defined]
+        assert key not in wrapped._LRUCacheWrapper__cache  # type: ignore[attr-defined]
+        assert task._log_traceback  # type: ignore[attr-defined]
+        task = None
 
-    caplog.set_level(logging.ERROR, logger="asyncio")
-    caplog.clear()
+    try:
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(runner())
+    finally:
+        loop.close()
+        asyncio.set_event_loop(None)
+        gc.collect()
 
-    task = None
-    gc.collect()
-    await asyncio.sleep(0)
-
+    assert task_ref is not None
+    assert task_ref() is None
     assert "Task exception was never retrieved" in caplog.text
     assert "RuntimeError: boom" in caplog.text
 
