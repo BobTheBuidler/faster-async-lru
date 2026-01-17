@@ -13649,7 +13649,7 @@ CPyL17: ;
     }
     CPy_Unreachable();
 CPyL24: ;
-    cpy_r_r57 = CPyStatics[DIFFCHECK_PLACEHOLDER]; /* '2.0.5.2' */
+    cpy_r_r57 = CPyStatics[DIFFCHECK_PLACEHOLDER]; /* '2.0.5.3' */
     cpy_r_r58 = CPyStatic_globals;
     cpy_r_r59 = CPyStatics[DIFFCHECK_PLACEHOLDER]; /* '__version__' */
     cpy_r_r60 = CPyDict_SetItem(cpy_r_r58, cpy_r_r59, cpy_r_r57);
@@ -14973,7 +14973,7 @@ const char * const CPyLit_Str[] = {
     "\006\002os\003sys\034faster_async_lru/__init__.py\b<module>\nnamedtuple\vcollections",
     "\a\bCallable\tCoroutine\bHashable\017collections.abc\003Any\005Final\aGeneric",
     "\b\bOptional\tTypedDict\aTypeVar\005Union\004cast\005final\boverload\006typing",
-    "\006\nmypyc_attr\017mypy_extensions\fversion_info\004Self\a2.0.5.2\v__version__",
+    "\006\nmypyc_attr\017mypy_extensions\fversion_info\004Self\a2.0.5.3\v__version__",
     "\a\nalru_cache\a__all__\002_T\002_R\005_Coro\003_CB\034functools.partial[_Coro[_R]]",
     "\003\"functools.partialmethod[_Coro[_R]]\004_CBP\017_PYTHON_GTE_312",
     "\006\016_PYTHON_LT_314\004hits\006misses\bcurrsize\016CancelledError\apartial",
