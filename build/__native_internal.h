@@ -65,6 +65,8 @@ extern CPyThreadLocal async_lru____make_wrapper_envObject *_make_wrapper_env_fre
 extern PyTypeObject *CPyType_wrapper__make_wrapper_obj;
 extern PyObject *CPyDef_wrapper__make_wrapper_obj(void);
 extern CPyThreadLocal async_lru___wrapper__make_wrapper_objObject *wrapper__make_wrapper_obj_free_instance;
+extern char CPyDef__is_coro_func(PyObject *cpy_r_fn);
+extern PyObject *CPyPy__is_coro_func(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern char CPyDef__CacheItem___cancel(PyObject *cpy_r_self);
 extern PyObject *CPyPy__CacheItem___cancel(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern char CPyDef__LRUCacheWrapper_____init__(PyObject *cpy_r_self, PyObject *cpy_r_fn, PyObject *cpy_r_maxsize, char cpy_r_typed, PyObject *cpy_r_ttl);
