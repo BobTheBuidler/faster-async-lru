@@ -347,7 +347,13 @@ def _make_wrapper(
         while isinstance(origin, (partial, partialmethod)):
             origin = origin.func
 
-        if not inspect.iscoroutinefunction(origin) and not os.environ.get("ASYNC_LRU_ALLOW_SYNC"):
+        # Inline the legacy _is_coroutine sentinel check to match asyncio.iscoroutinefunction
+        # semantics without the deprecation warning.
+        is_coro = (
+            inspect.iscoroutinefunction(origin)
+            or getattr(origin, "_is_coroutine", None) is _is_coroutine
+        )
+        if not is_coro and not os.environ.get("ASYNC_LRU_ALLOW_SYNC"):
             raise RuntimeError(f"Coroutine function is required, got {fn!r}")
 
         # functools.partialmethod support
