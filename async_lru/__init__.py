@@ -363,7 +363,7 @@ def _make_wrapper(
         while isinstance(origin, (partial, partialmethod)):
             origin = origin.func
 
-        if not _is_coro_func(origin) and not ALLOW_SYNC:
+        if not asyncio.iscoroutinefunction(origin) and not ALLOW_SYNC:
             raise RuntimeError(f"Coroutine function is required, got {fn!r}")
 
         # functools.partialmethod support
