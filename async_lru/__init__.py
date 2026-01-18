@@ -40,6 +40,9 @@ __version__ = "2.0.5"
 __all__ = ("alru_cache",)
 
 
+ALLOW_SYNC: Final = os.environ.get("ASYNC_LRU_ALLOW_SYNC")
+"""When set, allows wrapping sync callables by bypassing coroutine checks."""
+
 _T = TypeVar("_T")
 _R = TypeVar("_R")
 _Coro = Coroutine[Any, Any, _R]
@@ -60,8 +63,6 @@ shield: Final = asyncio.shield
 markcoroutinefunction: Final = getattr(inspect, "markcoroutinefunction", None)
 
 logger: Final = logging.getLogger("async_lru_threadsafe")
-#: When set, allows wrapping sync callables by bypassing coroutine checks.
-ALLOW_SYNC: Final = os.environ.get("ASYNC_LRU_ALLOW_SYNC")
 
 
 @final
