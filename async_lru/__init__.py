@@ -244,27 +244,30 @@ class _LRUCacheWrapper(Generic[_R]):
 
         key = _make_key(fn_args, fn_kwargs, self.__typed)
 
-        cache_item = self.__cache.get(key)
+        cache = self.__cache
+        cache_item = cache.get(key)
 
         if cache_item is not None:
             self._cache_hit(key)
-            if not cache_item.task.done():
+            task = cache_item.task
+            if not task.done():
                 # Each logical waiter increments waiters on entry.
                 cache_item.waiters += 1
                 return await self._shield_and_handle_cancelled_error(cache_item, key)
 
             # If the task is already done, just return the result.
-            return cache_item.task.result()
+            return task.result()
 
         coro = self.__wrapped__(*fn_args, **fn_kwargs)
         task = loop.create_task(coro)
         task.add_done_callback(partial(self._task_done_callback, key))
 
         cache_item = _CacheItem(task, None, 1)
-        self.__cache[key] = cache_item
+        cache[key] = cache_item
 
-        if self.__maxsize is not None and len(self.__cache) > self.__maxsize:
-            dropped_key, dropped_cache_item = self.__cache.popitem(last=False)
+        maxsize = self.__maxsize
+        if maxsize is not None and len(cache) > maxsize:
+            dropped_key, dropped_cache_item = cache.popitem(last=False)
             dropped_cache_item.cancel()
 
         self._cache_miss(key)
