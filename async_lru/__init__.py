@@ -168,9 +168,10 @@ class _LRUCacheWrapper(Generic[_R]):
             return
 
         if not wait:
+            cancel_msg = f"{self} is closed"
             for task in tasks:
                 if not task.done():
-                    task.cancel()
+                    task.cancel(cancel_msg)
 
         await gather(*tasks, return_exceptions=True)
 
