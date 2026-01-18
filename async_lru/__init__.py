@@ -210,7 +210,7 @@ class _LRUCacheWrapper(Generic[_R]):
         cache_item = cache.get(key)
         ttl = self.__ttl
         if ttl is not None and cache_item is not None:
-            loop = asyncio.get_running_loop()
+            loop = get_running_loop()
             cache_item.later_call = loop.call_later(
                 ttl, cache.pop, key, None
             )
@@ -240,7 +240,7 @@ class _LRUCacheWrapper(Generic[_R]):
         if self.__closed:
             raise RuntimeError(f"alru_cache is closed for {self}")
 
-        loop = asyncio.get_running_loop()
+        loop = get_running_loop()
 
         key = _make_key(fn_args, fn_kwargs, self.__typed)
 
