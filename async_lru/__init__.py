@@ -35,7 +35,7 @@ if sys.version_info < (3, 14):
     from asyncio.coroutines import _is_coroutine  # type: ignore[attr-defined]
 
 
-__version__ = "2.0.5"
+__version__ = "2.1.0"
 
 __all__ = ("alru_cache",)
 
@@ -60,6 +60,11 @@ shield: Final = asyncio.shield
 markcoroutinefunction: Final = getattr(inspect, "markcoroutinefunction", None)
 
 logger: Final = logging.getLogger("async_lru_threadsafe")
+
+
+def _is_coro_func(fn: Callable[..., Any]) -> bool:
+    # Match asyncio.iscoroutinefunction semantics without the deprecation warning.
+    return inspect.iscoroutinefunction(fn) or getattr(fn, "_is_coroutine", None) is _is_coroutine
 
 
 @final
@@ -210,7 +215,7 @@ class _LRUCacheWrapper(Generic[_R]):
         cache_item = cache.get(key)
         ttl = self.__ttl
         if ttl is not None and cache_item is not None:
-            loop = asyncio.get_running_loop()
+            loop = get_running_loop()
             cache_item.later_call = loop.call_later(
                 ttl, cache.pop, key, None
             )
@@ -245,13 +250,12 @@ class _LRUCacheWrapper(Generic[_R]):
         key = _make_key(fn_args, fn_kwargs, self.__typed)
 
         cache = self.__cache
-
         cache_item = cache.get(key)
 
         if cache_item is not None:
             self._cache_hit(key)
             task = cache_item.task
-            if not cache_item.task.done():
+            if not task.done():
                 # Each logical waiter increments waiters on entry.
                 cache_item.waiters += 1
                 return await self._shield_and_handle_cancelled_error(cache_item, key)
@@ -356,7 +360,7 @@ def _make_wrapper(
         while isinstance(origin, (partial, partialmethod)):
             origin = origin.func
 
-        if not asyncio.iscoroutinefunction(origin) and not os.environ.get("ASYNC_LRU_ALLOW_SYNC"):
+        if not _is_coro_func(origin) and not os.environ.get("ASYNC_LRU_ALLOW_SYNC"):
             raise RuntimeError(f"Coroutine function is required, got {fn!r}")
 
         # functools.partialmethod support

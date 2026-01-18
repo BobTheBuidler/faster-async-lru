@@ -1,10 +1,12 @@
 import asyncio
+import gc
+import logging
 from functools import partial
 from unittest import mock
 
 import pytest
 
-from async_lru import _LRUCacheWrapper
+from async_lru import _CacheItem, _LRUCacheWrapper
 
 
 async def test_done_callback_cancelled() -> None:
@@ -39,6 +41,97 @@ async def test_done_callback_exception() -> None:
     await asyncio.sleep(0)
 
     assert task not in wrapped._LRUCacheWrapper__tasks  # type: ignore[attr-defined]
+
+
+async def test_done_callback_exception_logs(caplog: pytest.LogCaptureFixture) -> None:
+    caplog.set_level(logging.ERROR, logger="asyncio")
+
+    wrapped = _LRUCacheWrapper(mock.ANY, None, False, None)
+    loop = asyncio.get_running_loop()
+
+    async def boom() -> None:
+        await asyncio.sleep(0)
+        raise RuntimeError("boom")
+
+    key = object()
+    task = loop.create_task(boom())
+    wrapped._LRUCacheWrapper__cache[key] = _CacheItem(task, None, 1)  # type: ignore[attr-defined]
+    task.add_done_callback(partial(wrapped._task_done_callback, key))
+
+    while not task.done():
+        await asyncio.sleep(0)
+    await asyncio.sleep(0)
+
+    assert key not in wrapped._LRUCacheWrapper__cache  # type: ignore[attr-defined]
+    # asyncio disables logging when exception() is called; keep logging enabled.
+    assert task._log_traceback
+
+    caplog.clear()
+
+    del task  # Remove reference so task get garbage collected.
+    for _ in range(5):  # pragma: no branch
+        gc.collect()
+        await asyncio.sleep(0)
+        if "Task exception was never retrieved" in caplog.text:  # pragma: no branch
+            break
+
+    assert "Task exception was never retrieved" in caplog.text
+    assert "RuntimeError: boom" in caplog.text
+
+
+async def test_cancel_message_on_last_waiter_cancel() -> None:
+    event = asyncio.Event()
+
+    async def slow() -> None:
+        await event.wait()
+
+    wrapped = _LRUCacheWrapper(slow, None, False, None)
+
+    waiter = asyncio.create_task(wrapped())
+    while not wrapped._LRUCacheWrapper__cache:  # type: ignore[attr-defined]
+        await asyncio.sleep(0)
+
+    cache_item = next(iter(wrapped._LRUCacheWrapper__cache.values()))  # type: ignore[attr-defined]
+
+    waiter.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await waiter
+
+    await asyncio.sleep(0)
+
+    with pytest.raises(asyncio.CancelledError) as excinfo:
+        await cache_item.task
+
+    msg = str(excinfo.value)
+    assert msg.startswith("alru_cache ")
+    assert msg.endswith(" has no more waiters")
+
+
+async def test_cache_close_cancel_message() -> None:
+    event = asyncio.Event()
+
+    async def slow() -> None:
+        await event.wait()
+
+    wrapped = _LRUCacheWrapper(slow, None, False, None)
+
+    waiter = asyncio.create_task(wrapped())
+    while not wrapped._LRUCacheWrapper__cache:  # type: ignore[attr-defined]
+        await asyncio.sleep(0)
+
+    cache_item = next(iter(wrapped._LRUCacheWrapper__cache.values()))  # type: ignore[attr-defined]
+    task = cache_item.task
+    expected = f"{wrapped} is closed"
+
+    await wrapped.cache_close(wait=False)
+
+    with pytest.raises(asyncio.CancelledError):
+        await waiter
+
+    with pytest.raises(asyncio.CancelledError) as excinfo:
+        await task
+
+    assert excinfo.value.args == (expected,)
 
 
 async def test_cache_invalidate_typed() -> None:
