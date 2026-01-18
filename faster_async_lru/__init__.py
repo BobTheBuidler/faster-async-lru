@@ -35,6 +35,9 @@ __version__ = "2.0.5.3"
 __all__ = ("alru_cache",)
 
 
+ALLOW_SYNC: Final = os.environ.get("ASYNC_LRU_ALLOW_SYNC")
+"""When set, allows wrapping sync callables by bypassing coroutine checks."""
+
 _T = TypeVar("_T")
 _R = TypeVar("_R")
 _Coro = Coroutine[Any, Any, _R]
@@ -350,7 +353,7 @@ def _make_wrapper(
         while isinstance(origin, (partial, partialmethod)):
             origin = origin.func
 
-        if not inspect.iscoroutinefunction(origin) and not os.environ.get("ASYNC_LRU_ALLOW_SYNC"):
+        if not inspect.iscoroutinefunction(origin) and not ALLOW_SYNC:
             raise RuntimeError(f"Coroutine function is required, got {fn!r}")
 
         # functools.partialmethod support

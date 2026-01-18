@@ -6,7 +6,7 @@
 
 int CPyGlobalsInit(void);
 
-extern PyObject *CPyStatics[150];
+extern PyObject *CPyStatics[151];
 extern const char * const CPyLit_Str[];
 extern const char * const CPyLit_Bytes[];
 extern const char * const CPyLit_Int[];
@@ -27,6 +27,7 @@ extern CPyModule *CPyModule_collections;
 extern CPyModule *CPyModule_collections___abc;
 extern CPyModule *CPyModule_typing;
 extern CPyModule *CPyModule_mypy_extensions;
+extern PyObject *CPyStatic_ALLOW_SYNC;
 extern char CPyStatic__PYTHON_GTE_312;
 extern char CPyStatic__PYTHON_LT_314;
 extern PyObject *CPyStatic_CancelledError;
