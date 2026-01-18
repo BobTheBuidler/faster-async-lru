@@ -235,6 +235,8 @@ class _LRUCacheWrapper(Generic[_R]):
             cache_item.waiters -= 1
 
     async def __call__(self, /, *fn_args: Any, **fn_kwargs: Any) -> _R:
+        task: asyncio.Task[_R]
+
         if self.__closed:
             raise RuntimeError(f"alru_cache is closed for {self}")
 
@@ -255,7 +257,7 @@ class _LRUCacheWrapper(Generic[_R]):
             return cache_item.task.result()
 
         coro = self.__wrapped__(*fn_args, **fn_kwargs)
-        task: asyncio.Task[_R] = loop.create_task(coro)
+        task = loop.create_task(coro)
         task.add_done_callback(partial(self._task_done_callback, key))
 
         cache_item = _CacheItem(task, None, 1)
