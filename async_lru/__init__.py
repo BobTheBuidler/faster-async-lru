@@ -60,7 +60,6 @@ shield: Final = asyncio.shield
 markcoroutinefunction: Final = getattr(inspect, "markcoroutinefunction", None)
 
 logger: Final = logging.getLogger("async_lru_threadsafe")
-ALLOW_SYNC: Final = os.environ.get("ASYNC_LRU_ALLOW_SYNC")
 
 
 def _is_coro_func(fn: Callable[..., Any]) -> bool:
@@ -361,7 +360,7 @@ def _make_wrapper(
         while isinstance(origin, (partial, partialmethod)):
             origin = origin.func
 
-        if not _is_coro_func(origin) and not ALLOW_SYNC:
+        if not _is_coro_func(origin) and not os.environ.get("ASYNC_LRU_ALLOW_SYNC"):
             raise RuntimeError(f"Coroutine function is required, got {fn!r}")
 
         # functools.partialmethod support
