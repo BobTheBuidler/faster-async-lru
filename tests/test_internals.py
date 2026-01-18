@@ -107,6 +107,33 @@ async def test_cancel_message_on_last_waiter_cancel() -> None:
     assert msg.endswith(" has no more waiters")
 
 
+async def test_cache_close_cancel_message() -> None:
+    event = asyncio.Event()
+
+    async def slow() -> None:
+        await event.wait()
+
+    wrapped = _LRUCacheWrapper(slow, None, False, None)
+
+    waiter = asyncio.create_task(wrapped())
+    while not wrapped._LRUCacheWrapper__cache:  # type: ignore[attr-defined]
+        await asyncio.sleep(0)
+
+    cache_item = next(iter(wrapped._LRUCacheWrapper__cache.values()))  # type: ignore[attr-defined]
+    task = cache_item.task
+    expected = f"{wrapped} is closed"
+
+    await wrapped.cache_close(wait=False)
+
+    with pytest.raises(asyncio.CancelledError):
+        await waiter
+
+    with pytest.raises(asyncio.CancelledError) as excinfo:
+        await task
+
+    assert excinfo.value.args == (expected,)
+
+
 async def test_cache_invalidate_typed() -> None:
     wrapped = _LRUCacheWrapper(mock.AsyncMock(return_value=1), None, True, None)
 
