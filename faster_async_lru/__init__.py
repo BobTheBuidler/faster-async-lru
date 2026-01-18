@@ -57,6 +57,9 @@ shield: Final = asyncio.shield
 
 markcoroutinefunction: Final = inspect.markcoroutinefunction if _PYTHON_GTE_312 else None  # type: ignore [attr-defined]
 
+#: When set, allows wrapping sync callables by bypassing coroutine checks.
+ALLOW_SYNC: Final = os.environ.get("ASYNC_LRU_ALLOW_SYNC")
+
 
 @final
 class _CacheParameters(TypedDict):
@@ -350,7 +353,7 @@ def _make_wrapper(
         while isinstance(origin, (partial, partialmethod)):
             origin = origin.func
 
-        if not inspect.iscoroutinefunction(origin) and not os.environ.get("ASYNC_LRU_ALLOW_SYNC"):
+        if not inspect.iscoroutinefunction(origin) and not ALLOW_SYNC:
             raise RuntimeError(f"Coroutine function is required, got {fn!r}")
 
         # functools.partialmethod support
