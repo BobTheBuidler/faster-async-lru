@@ -62,6 +62,11 @@ markcoroutinefunction: Final = getattr(inspect, "markcoroutinefunction", None)
 logger: Final = logging.getLogger("async_lru_threadsafe")
 
 
+def _is_coro_func(fn: Callable[..., Any]) -> bool:
+    # Match asyncio.iscoroutinefunction semantics without the deprecation warning.
+    return inspect.iscoroutinefunction(fn) or getattr(fn, "_is_coroutine", None) is _is_coroutine
+
+
 @final
 class _CacheParameters(TypedDict):
     typed: bool
@@ -355,13 +360,7 @@ def _make_wrapper(
         while isinstance(origin, (partial, partialmethod)):
             origin = origin.func
 
-        # Inline the legacy _is_coroutine sentinel check to match asyncio.iscoroutinefunction
-        # semantics without the deprecation warning.
-        is_coro_func = (
-            inspect.iscoroutinefunction(origin)
-            or getattr(origin, "_is_coroutine", None) is _is_coroutine
-        )
-        if not is_coro_func and not os.environ.get("ASYNC_LRU_ALLOW_SYNC"):
+        if not _is_coro_func(origin) and not os.environ.get("ASYNC_LRU_ALLOW_SYNC"):
             raise RuntimeError(f"Coroutine function is required, got {fn!r}")
 
         # functools.partialmethod support
