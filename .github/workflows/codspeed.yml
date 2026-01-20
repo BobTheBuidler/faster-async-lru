@@ -2,10 +2,34 @@ name: CodSpeed Benchmarks
 
 on:
   push:
+    paths:
+      - '**/*.py'
+      - '**/*.pyi'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'pytest.ini'
+      - 'setup.cfg'
+      - 'setup.py'
+      - 'tox.ini'
+      - 'requirements*.txt'
+      - 'poetry.lock'
+      - '.github/workflows/codspeed.yml'
     branches:
       - master
       - '[0-9].[0-9]+'
   pull_request:
+    paths:
+      - '**/*.py'
+      - '**/*.pyi'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'pytest.ini'
+      - 'setup.cfg'
+      - 'setup.py'
+      - 'tox.ini'
+      - 'requirements*.txt'
+      - 'poetry.lock'
+      - '.github/workflows/codspeed.yml'
     branches:
       - master
       - '[0-9].[0-9]+'
