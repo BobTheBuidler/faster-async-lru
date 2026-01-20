@@ -4,15 +4,12 @@ on:
   push:
     paths:
       - '**/*.py'
-      - '**/*.pyi'
       - 'tests/**'
       - 'pyproject.toml'
-      - 'pytest.ini'
       - 'setup.cfg'
       - 'setup.py'
       - 'tox.ini'
       - 'requirements*.txt'
-      - 'poetry.lock'
       - '.github/workflows/codspeed.yml'
     branches:
       - master
@@ -20,15 +17,12 @@ on:
   pull_request:
     paths:
       - '**/*.py'
-      - '**/*.pyi'
       - 'tests/**'
       - 'pyproject.toml'
-      - 'pytest.ini'
       - 'setup.cfg'
       - 'setup.py'
       - 'tox.ini'
       - 'requirements*.txt'
-      - 'poetry.lock'
       - '.github/workflows/codspeed.yml'
     branches:
       - master
