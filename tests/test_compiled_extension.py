@@ -8,5 +8,7 @@ def test_compiled_extension_loaded() -> None:
     assert origin is not None
     assert origin.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)), (
         "Expected faster_async_lru to be loaded from a compiled extension module, "
-        f"got {origin!r}."
+        f"got {origin!r}. "
+        "Hint: if the `faster_async_lru/` package dir exists, importlib prefers it "
+        "over the top-level extension; build in-place or clean it."
     )
