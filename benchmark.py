@@ -7,7 +7,6 @@ import pytest
 
 import faster_async_lru
 
-
 origin = faster_async_lru.__spec__.origin  # type: ignore[union-attr]
 assert origin is not None
 assert origin.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)), (
@@ -92,24 +91,31 @@ class Methods:
     @async_lru.alru_cache(maxsize=128)
     async def cached_meth(self, x):
         return x
+
     @faster_async_lru.alru_cache(maxsize=128)
     async def faster_cached_meth(self, x):
         return x
+
     @async_lru.alru_cache(maxsize=16, ttl=0.01)
     async def cached_meth_ttl(self, x):
         return x
+
     @faster_async_lru.alru_cache(maxsize=16, ttl=0.01)
     async def faster_cached_meth_ttl(self, x):
         return x
+
     @async_lru.alru_cache()
     async def cached_meth_unbounded(self, x):
         return x
+
     @faster_async_lru.alru_cache()
     async def faster_cached_meth_unbounded(self, x):
         return x
+
     @async_lru.alru_cache(ttl=0.01)
     async def cached_meth_unbounded_ttl(self, x):
         return x
+
     @faster_async_lru.alru_cache(ttl=0.01)
     async def faster_cached_meth_unbounded_ttl(self, x):
         return x
@@ -120,10 +126,30 @@ async def uncached_func(x):
 
 
 ids = ["bounded", "unbounded", "meth-bounded", "meth-unbounded"]
-funcs = [cached_func, cached_func_unbounded, Methods.cached_meth, Methods.cached_meth_unbounded]
-faster_funcs = [faster_cached_func, faster_cached_func_unbounded, Methods.faster_cached_meth, Methods.faster_cached_meth_unbounded]
-funcs_ttl = [cached_func_ttl, cached_func_unbounded_ttl, Methods.cached_meth_ttl, Methods.cached_meth_unbounded_ttl]
-faster_funcs_ttl = [faster_cached_func_ttl, faster_cached_func_unbounded_ttl, Methods.faster_cached_meth_ttl, Methods.faster_cached_meth_unbounded_ttl]
+funcs = [
+    cached_func,
+    cached_func_unbounded,
+    Methods.cached_meth,
+    Methods.cached_meth_unbounded,
+]
+faster_funcs = [
+    faster_cached_func,
+    faster_cached_func_unbounded,
+    Methods.faster_cached_meth,
+    Methods.faster_cached_meth_unbounded,
+]
+funcs_ttl = [
+    cached_func_ttl,
+    cached_func_unbounded_ttl,
+    Methods.cached_meth_ttl,
+    Methods.cached_meth_unbounded_ttl,
+]
+faster_funcs_ttl = [
+    faster_cached_func_ttl,
+    faster_cached_func_unbounded_ttl,
+    Methods.faster_cached_meth_ttl,
+    Methods.faster_cached_meth_unbounded_ttl,
+]
 
 
 @pytest.mark.parametrize("func", funcs, ids=ids)
@@ -401,6 +427,7 @@ def test_faster_cache_fill_eviction_benchmark(
 only_funcs = funcs[:2]
 only_faster_funcs = faster_funcs[:2]
 func_ids = ids[:2]
+
 
 @pytest.mark.parametrize("func", only_funcs, ids=func_ids)
 def test_internal_cache_hit_microbenchmark(
