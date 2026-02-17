@@ -136,8 +136,9 @@ def test_cache_miss_benchmark(
     run_loop: Callable[..., Any],
     func: _LRUCacheWrapper[Any],
 ) -> None:
-    unique_objects = [object() for _ in range(128)]
     func.cache_clear()
+    # Use 2048 objects (16x maxsize=128) to force evictions and measure actual misses.
+    unique_objects = [object() for _ in range(2048)]
 
     async def run() -> None:
         for obj in unique_objects:
