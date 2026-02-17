@@ -12,6 +12,7 @@ on:
       - 'pyproject.toml'
       - 'setup.py'
       - 'setup.cfg'
+      - 'requirements-benchmarks.txt'
   pull_request:
     branches:
       - master
@@ -23,6 +24,7 @@ on:
       - 'pyproject.toml'
       - 'setup.py'
       - 'setup.cfg'
+      - 'requirements-benchmarks.txt'
   workflow_dispatch:
 
 jobs:
