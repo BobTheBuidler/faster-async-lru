@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Generic, TypeVar
 
-from faster_async_lru import _LRUCacheWrapper, alru_cache
-
 from typing_extensions import assert_type
+
+from faster_async_lru import _LRUCacheWrapper, alru_cache
 
 
 class AsyncCallable:

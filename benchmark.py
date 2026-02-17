@@ -1,19 +1,49 @@
 import asyncio
+import importlib
 import importlib.machinery
+import importlib.util
+import sys
+from pathlib import Path
 from typing import Any, Callable
 
 import async_lru
 import pytest
 
-import faster_async_lru
+REPO_ROOT = Path(__file__).resolve().parent
 
 
-origin = faster_async_lru.__spec__.origin  # type: ignore[union-attr]
-assert origin is not None
-assert origin.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)), (
-    "Expected faster_async_lru to be loaded from a compiled extension module, "
-    f"got {origin!r}."
-)
+def _load_compiled_module(module_name: str) -> Any:
+    for suffix in importlib.machinery.EXTENSION_SUFFIXES:
+        candidate = REPO_ROOT / f"{module_name}{suffix}"
+        if not candidate.exists():
+            continue
+        spec = importlib.util.spec_from_file_location(module_name, candidate)
+        if spec is None or spec.loader is None:
+            continue
+        module = importlib.util.module_from_spec(spec)
+        previous = sys.modules.get(module_name)
+        sys.modules[module_name] = module
+        try:
+            spec.loader.exec_module(module)
+        except Exception:
+            if previous is None:
+                sys.modules.pop(module_name, None)
+            else:
+                sys.modules[module_name] = previous
+            raise
+        return module
+
+    module = importlib.import_module(module_name)
+    origin = getattr(getattr(module, "__spec__", None), "origin", None)
+    if origin is None or not origin.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)):
+        raise AssertionError(
+            "Expected faster_async_lru to be loaded from a compiled extension module, "
+            f"got {origin!r}."
+        )
+    return module
+
+
+faster_async_lru = _load_compiled_module("faster_async_lru")
 
 
 try:
@@ -92,24 +122,31 @@ class Methods:
     @async_lru.alru_cache(maxsize=128)
     async def cached_meth(self, x):
         return x
+
     @faster_async_lru.alru_cache(maxsize=128)
     async def faster_cached_meth(self, x):
         return x
+
     @async_lru.alru_cache(maxsize=16, ttl=0.01)
     async def cached_meth_ttl(self, x):
         return x
+
     @faster_async_lru.alru_cache(maxsize=16, ttl=0.01)
     async def faster_cached_meth_ttl(self, x):
         return x
+
     @async_lru.alru_cache()
     async def cached_meth_unbounded(self, x):
         return x
+
     @faster_async_lru.alru_cache()
     async def faster_cached_meth_unbounded(self, x):
         return x
+
     @async_lru.alru_cache(ttl=0.01)
     async def cached_meth_unbounded_ttl(self, x):
         return x
+
     @faster_async_lru.alru_cache(ttl=0.01)
     async def faster_cached_meth_unbounded_ttl(self, x):
         return x
@@ -120,10 +157,30 @@ async def uncached_func(x):
 
 
 ids = ["bounded", "unbounded", "meth-bounded", "meth-unbounded"]
-funcs = [cached_func, cached_func_unbounded, Methods.cached_meth, Methods.cached_meth_unbounded]
-faster_funcs = [faster_cached_func, faster_cached_func_unbounded, Methods.faster_cached_meth, Methods.faster_cached_meth_unbounded]
-funcs_ttl = [cached_func_ttl, cached_func_unbounded_ttl, Methods.cached_meth_ttl, Methods.cached_meth_unbounded_ttl]
-faster_funcs_ttl = [faster_cached_func_ttl, faster_cached_func_unbounded_ttl, Methods.faster_cached_meth_ttl, Methods.faster_cached_meth_unbounded_ttl]
+funcs = [
+    cached_func,
+    cached_func_unbounded,
+    Methods.cached_meth,
+    Methods.cached_meth_unbounded,
+]
+faster_funcs = [
+    faster_cached_func,
+    faster_cached_func_unbounded,
+    Methods.faster_cached_meth,
+    Methods.faster_cached_meth_unbounded,
+]
+funcs_ttl = [
+    cached_func_ttl,
+    cached_func_unbounded_ttl,
+    Methods.cached_meth_ttl,
+    Methods.cached_meth_unbounded_ttl,
+]
+faster_funcs_ttl = [
+    faster_cached_func_ttl,
+    faster_cached_func_unbounded_ttl,
+    Methods.faster_cached_meth_ttl,
+    Methods.faster_cached_meth_unbounded_ttl,
+]
 
 
 @pytest.mark.parametrize("func", funcs, ids=ids)
@@ -402,6 +459,7 @@ only_funcs = funcs[:2]
 only_faster_funcs = faster_funcs[:2]
 func_ids = ids[:2]
 
+
 @pytest.mark.parametrize("func", only_funcs, ids=func_ids)
 def test_internal_cache_hit_microbenchmark(
     benchmark: BenchmarkFixture,
@@ -501,11 +559,10 @@ def test_internal_task_done_callback_microbenchmark(
 
     iterations = range(1000)
     callback = func._task_done_callback
-
     @benchmark
     def run() -> None:
-        for i in iterations:
-            callback(i, task)
+        for key in iterations:
+            callback(key, task)
 
 
 @pytest.mark.parametrize("func", only_faster_funcs, ids=func_ids)
@@ -541,8 +598,7 @@ def test_faster_internal_task_done_callback_microbenchmark(
 
     iterations = range(1000)
     callback = func._task_done_callback
-
     @benchmark
     def run() -> None:
-        for i in iterations:
-            callback(i, task)
+        for key in iterations:
+            callback(key, task)

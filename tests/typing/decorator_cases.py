@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import NewType, Optional, Union
 
-from faster_async_lru import _LRUCacheWrapper, alru_cache
-
 from typing_extensions import Annotated, Literal, assert_type
+
+from faster_async_lru import _LRUCacheWrapper, alru_cache
 
 
 class Widget:
@@ -35,19 +35,19 @@ async def direct_none(flag: bool) -> None:
 
 
 @alru_cache
-async def direct_union(value: Union[int, str]) -> Union[int, str]:
+async def direct_union(value: int | str) -> int | str:
     return value
 
 
 @alru_cache
 async def direct_optional_union(
-    value: Optional[Union[int, str]],
-) -> Optional[Union[int, str]]:
+    value: int | str | None,
+) -> int | str | None:
     return value
 
 
 @alru_cache
-async def direct_optional(value: Optional[Widget]) -> Optional[Widget]:
+async def direct_optional(value: Widget | None) -> Widget | None:
     return value
 
 
