@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-benchmarks.txt async-lru
+          pip install -r requirements-benchmarks.txt
       - name: Remove python files
         run: rm -r faster_async_lru
       - name: Run Pytest Benchmark & Save Output
