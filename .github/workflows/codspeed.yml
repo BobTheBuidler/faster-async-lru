@@ -42,7 +42,7 @@ jobs:
 
       - name: Install benchmark requirements
         run: pip install -r requirements-benchmarks.txt
-        
+
       - name: Install faster async lru
         run: pip install .
 
