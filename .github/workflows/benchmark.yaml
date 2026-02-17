@@ -117,9 +117,9 @@ jobs:
               body += '|----------|---------------|-------------|----------|-------------|----------|--------|\n';
               for (const [group, data] of Object.entries(groupDiffs).sort(([a], [b]) => a.localeCompare(b))) {
                 if (data.percent_change !== null && data.percent_change !== undefined) {
-                  let emoji = '';
-                  if (data.percent_change > 0) emoji = '';
-                  else if (data.percent_change < 0) emoji = '';
+                  let emoji = '\u2796';
+                  if (data.percent_change > 0) emoji = '\u2705';
+                  else if (data.percent_change < 0) emoji = '\u274c';
                   const percentChange = data.percent_change !== undefined && data.percent_change !== null
                     ? `${data.percent_change.toFixed(2)}%` : '';
                   const speedupPercent = data.speedup_percent !== undefined && data.speedup_percent !== null
@@ -128,7 +128,7 @@ jobs:
                     ? `${data.speedup_x.toFixed(2)}x` : '';
                   body += `| \`${group}\` | ${data.reference_mean} | ${data.faster_mean} | ${percentChange} | ${speedupPercent} | ${speedupX} | ${emoji} |\n`;
                 } else if (data.note) {
-                  body += `| \`${group}\` |  |  |  |  |  |  |\n`;
+                  body += `| \`${group}\` |  |  |  |  |  | \u2796 |\n`;
                 }
               }
               body += '\n';
