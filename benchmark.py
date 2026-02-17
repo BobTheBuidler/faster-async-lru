@@ -1,18 +1,50 @@
 import asyncio
+import importlib
 import importlib.machinery
+import importlib.util
+import inspect
+import sys
+from pathlib import Path
 from typing import Any, Callable
 
 import async_lru
 import pytest
 
-import faster_async_lru
+REPO_ROOT = Path(__file__).resolve().parent
 
-origin = faster_async_lru.__spec__.origin  # type: ignore[union-attr]
-assert origin is not None
-assert origin.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)), (
-    "Expected faster_async_lru to be loaded from a compiled extension module, "
-    f"got {origin!r}."
-)
+
+def _load_compiled_module(module_name: str) -> Any:
+    for suffix in importlib.machinery.EXTENSION_SUFFIXES:
+        candidate = REPO_ROOT / f"{module_name}{suffix}"
+        if not candidate.exists():
+            continue
+        spec = importlib.util.spec_from_file_location(module_name, candidate)
+        if spec is None or spec.loader is None:
+            continue
+        module = importlib.util.module_from_spec(spec)
+        previous = sys.modules.get(module_name)
+        sys.modules[module_name] = module
+        try:
+            spec.loader.exec_module(module)
+        except Exception:
+            if previous is None:
+                sys.modules.pop(module_name, None)
+            else:
+                sys.modules[module_name] = previous
+            raise
+        return module
+
+    module = importlib.import_module(module_name)
+    origin = getattr(getattr(module, "__spec__", None), "origin", None)
+    if origin is None or not origin.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)):
+        raise AssertionError(
+            "Expected faster_async_lru to be loaded from a compiled extension module, "
+            f"got {origin!r}."
+        )
+    return module
+
+
+faster_async_lru = _load_compiled_module("faster_async_lru")
 
 
 try:
@@ -528,11 +560,17 @@ def test_internal_task_done_callback_microbenchmark(
 
     iterations = range(1000)
     callback = func._task_done_callback
+    needs_future = _task_done_callback_needs_future(callback)
 
     @benchmark
     def run() -> None:
-        for i in iterations:
-            callback(i, task)
+        if needs_future:
+            futures = [loop.create_future() for _ in iterations]
+            for fut, key in zip(futures, iterations):
+                callback(fut, key, task)
+        else:
+            for key in iterations:
+                callback(key, task)
 
 
 @pytest.mark.parametrize("func", only_faster_funcs, ids=func_ids)
@@ -568,8 +606,26 @@ def test_faster_internal_task_done_callback_microbenchmark(
 
     iterations = range(1000)
     callback = func._task_done_callback
+    needs_future = _task_done_callback_needs_future(callback)
 
     @benchmark
     def run() -> None:
-        for i in iterations:
-            callback(i, task)
+        if needs_future:
+            futures = [loop.create_future() for _ in iterations]
+            for fut, key in zip(futures, iterations):
+                callback(fut, key, task)
+        else:
+            for key in iterations:
+                callback(key, task)
+
+
+def _task_done_callback_needs_future(callback: Callable[..., Any]) -> bool:
+    try:
+        params = list(inspect.signature(callback).parameters.values())
+    except (TypeError, ValueError):
+        return False
+
+    if len(params) < 3:
+        return False
+
+    return params[0].name in {"fut", "future"}
