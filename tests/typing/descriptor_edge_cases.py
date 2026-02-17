@@ -4,9 +4,13 @@ from __future__ import annotations
 
 from typing import Optional, Union
 
-from faster_async_lru import _LRUCacheWrapper, _LRUCacheWrapperInstanceMethod, alru_cache
-
 from typing_extensions import assert_type
+
+from faster_async_lru import (
+    _LRUCacheWrapper,
+    _LRUCacheWrapperInstanceMethod,
+    alru_cache,
+)
 
 
 async def free_function(value: int) -> int:

@@ -59,7 +59,7 @@ async def test_cache_invalidate_multiple_args(check_lru: Callable[..., None]) ->
 
 
 async def test_cache_invalidate_multiple_args_different_order(
-    check_lru: Callable[..., None]
+    check_lru: Callable[..., None],
 ) -> None:
     @alru_cache()
     async def coro(*args: int) -> int:

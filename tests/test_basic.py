@@ -89,7 +89,7 @@ async def test_alru_cache_partial() -> None:
 
 
 async def test_alru_cache_await_same_result_async(
-    check_lru: Callable[..., None]
+    check_lru: Callable[..., None],
 ) -> None:
     calls = 0
     val = object()
@@ -113,7 +113,7 @@ async def test_alru_cache_await_same_result_async(
 
 
 async def test_alru_cache_await_same_result_coroutine(
-    check_lru: Callable[..., None]
+    check_lru: Callable[..., None],
 ) -> None:
     calls = 0
     val = object()

@@ -35,7 +35,7 @@ async def test_alru_exception(check_lru: Callable[..., None]) -> None:
 )
 async def test_alru_exception_reference_cleanup(check_lru: Callable[..., None]) -> None:
     class CustomClass:
-        ...
+        pass
 
     @alru_cache()
     async def coro(val: int) -> None:
