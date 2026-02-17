@@ -38,7 +38,7 @@ jobs:
       - name: Remove python files
         run: rm -r faster_async_lru
       - name: Run Pytest Benchmark & Save Output
-        run: pytest --benchmark-only --benchmark-json=benchmark.json benchmark.py
+        run: pytest --benchmark-only --benchmark-json=benchmark.json -o python_files=benchmark.py benchmark.py
       - name: Upload Pytest Benchmark Results
         uses: actions/upload-artifact@v4
         with:
