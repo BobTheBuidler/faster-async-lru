@@ -8,6 +8,7 @@ on:
       - '.github/workflows/benchmark.yaml'
       - 'pyproject.toml'
       - 'setup.py'
+      - 'requirements-benchmarks.txt'
   push:
     branches: [master, compile]
     paths:
@@ -15,6 +16,7 @@ on:
       - '.github/workflows/benchmark.yaml'
       - 'pyproject.toml'
       - 'setup.py'
+      - 'requirements-benchmarks.txt'
   workflow_dispatch:
 
 concurrency:
