@@ -62,30 +62,26 @@ typedef struct {
     PyObject_HEAD
     CPyVTableItem *vtable;
     vectorcallfunc vectorcall;
-    PyObject *___module__;
     PyObject *___name__;
     PyObject *___qualname__;
-    PyObject *___doc__;
-    PyObject *___annotations__;
     PyObject *___wrapped__;
     PyObject *___maxsize;
     char ___typed;
     PyObject *___ttl;
+    PyObject *___jitter;
     PyObject *___cache;
     char ___closed;
     CPyTagged ___hits;
     CPyTagged ___misses;
+    PyObject *___first_loop;
 } async_lru____LRUCacheWrapperObject;
 
 typedef struct {
     PyObject_HEAD
     CPyVTableItem *vtable;
     vectorcallfunc vectorcall;
-    PyObject *___module__;
     PyObject *___name__;
     PyObject *___qualname__;
-    PyObject *___doc__;
-    PyObject *___annotations__;
     PyObject *___wrapped__;
     PyObject *___instance;
     PyObject *___wrapper;
@@ -97,8 +93,8 @@ typedef struct {
     PyObject *___mypyc_generator_attribute__self;
     char ___mypyc_generator_attribute__wait;
     int32_t ___mypyc_next_label__;
+    PyObject *___mypyc_generator_attribute__loop;
     PyObject *___mypyc_generator_attribute__tasks;
-    PyObject *___mypyc_generator_attribute__cancel_msg;
     PyObject *___mypyc_temp__0;
     int64_t ___mypyc_temp__1;
     PyObject *___mypyc_generator_attribute__task;
@@ -127,15 +123,13 @@ typedef struct {
     PyObject *___mypyc_generator_attribute__fn_args;
     PyObject *___mypyc_generator_attribute__fn_kwargs;
     int32_t ___mypyc_next_label__;
-    PyObject *___mypyc_generator_attribute__task;
     PyObject *___mypyc_generator_attribute__loop;
     PyObject *___mypyc_generator_attribute__key;
-    PyObject *___mypyc_generator_attribute__cache;
     PyObject *___mypyc_generator_attribute__cache_item;
     PyObject *___mypyc_temp__8;
     tuple_T3OOO ___mypyc_temp__9;
     PyObject *___mypyc_generator_attribute__coro;
-    PyObject *___mypyc_generator_attribute__maxsize;
+    PyObject *___mypyc_generator_attribute__task;
     PyObject *___mypyc_generator_attribute__dropped_key;
     PyObject *___mypyc_generator_attribute__dropped_cache_item;
     PyObject *___mypyc_temp__10;
@@ -171,6 +165,7 @@ typedef struct {
     PyObject *_maxsize;
     char _typed;
     PyObject *_ttl;
+    PyObject *_jitter;
     PyObject *_wrapper;
 } async_lru____make_wrapper_envObject;
 
