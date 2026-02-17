@@ -3,7 +3,7 @@
 
 coverage==7.10.7
 mypy-extensions==1.1.0
-pytest==8.4.2
+pytest==9.0.2
 pytest-asyncio==1.2.0
 pytest-benchmark
 pytest-codspeed==4.0.0
