@@ -20,7 +20,6 @@ from typing import (
 
 from mypy_extensions import mypyc_attr
 
-
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
@@ -42,7 +41,9 @@ _T = TypeVar("_T")
 _R = TypeVar("_R")
 _Coro = Coroutine[Any, Any, _R]
 _CB = Callable[..., _Coro[_R]]
-_CBP = Union[_CB[_R], "functools.partial[_Coro[_R]]", "functools.partialmethod[_Coro[_R]]"]
+_CBP = Union[
+    _CB[_R], "functools.partial[_Coro[_R]]", "functools.partialmethod[_Coro[_R]]"
+]
 
 _PYTHON_GTE_312: Final = sys.version_info >= (3, 12)
 _PYTHON_LT_314: Final = sys.version_info < (3, 14)
@@ -208,9 +209,7 @@ class _LRUCacheWrapper(Generic[_R]):
         ttl = self.__ttl
         if ttl is not None and cache_item is not None:
             loop = get_running_loop()
-            cache_item.later_call = loop.call_later(
-                ttl, cache.pop, key, None
-            )
+            cache_item.later_call = loop.call_later(ttl, cache.pop, key, None)
 
     async def _shield_and_handle_cancelled_error(
         self, cache_item: _CacheItem[_T], key: Hashable
@@ -233,7 +232,7 @@ class _LRUCacheWrapper(Generic[_R]):
 
     async def __call__(self, /, *fn_args: Any, **fn_kwargs: Any) -> _R:
         task: asyncio.Task[_R]
-        
+
         if self.__closed:
             raise RuntimeError(f"alru_cache is closed for {self}")
 
@@ -375,7 +374,7 @@ def alru_cache(
     *,
     ttl: Optional[float] = None,
 ) -> Callable[[_CBP[_R]], _LRUCacheWrapper[_R]]:
-    ...
+    pass
 
 
 @overload
@@ -383,7 +382,7 @@ def alru_cache(
     maxsize: _CBP[_R],
     /,
 ) -> _LRUCacheWrapper[_R]:
-    ...
+    pass
 
 
 def alru_cache(
@@ -406,16 +405,17 @@ def alru_cache(
 # I've vendored the below code from `functools` so we can compile it with the rest
 # of this lib and make everything, including key generation, super fast.
 
+
 @final
 @mypyc_attr(native_class=False)
 class _HashedSeq(list[Any]):
-    """ This class guarantees that hash() will be called no more than once
-        per element.  This is important because the lru_cache() will hash
-        the key multiple times on a cache miss.
+    """This class guarantees that hash() will be called no more than once
+    per element.  This is important because the lru_cache() will hash
+    the key multiple times on a cache miss.
 
     """
 
-    __slots__ = 'hashvalue'
+    __slots__ = "hashvalue"
 
     def __init__(self, tup: tuple[Any, ...]) -> None:
         self[:] = tup
