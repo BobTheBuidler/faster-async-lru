@@ -1,15 +1,34 @@
 import asyncio
 import importlib.machinery
+import importlib.util
+import inspect
+from pathlib import Path
+import sys
 from typing import Any, Callable
 
 import async_lru
 import pytest
 
-import faster_async_lru
+def _load_compiled_faster_async_lru() -> tuple[object, Path]:
+    module_name = "faster_async_lru"
+    for entry in sys.path:
+        if not entry:
+            continue
+        for suffix in importlib.machinery.EXTENSION_SUFFIXES:
+            candidate = Path(entry) / f"{module_name}{suffix}"
+            if candidate.is_file():
+                spec = importlib.util.spec_from_file_location(module_name, candidate)
+                if spec is None or spec.loader is None:
+                    continue
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                sys.modules[module_name] = module
+                return module, candidate
+    raise ImportError("Compiled faster_async_lru extension not found on sys.path.")
 
 
-origin = faster_async_lru.__spec__.origin  # type: ignore[union-attr]
-assert origin is not None
+faster_async_lru, origin_path = _load_compiled_faster_async_lru()
+origin = str(origin_path)
 assert origin.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)), (
     "Expected faster_async_lru to be loaded from a compiled extension module, "
     f"got {origin!r}."
@@ -501,11 +520,32 @@ def test_internal_task_done_callback_microbenchmark(
 
     iterations = range(1000)
     callback = func._task_done_callback
+    param_count = len(inspect.signature(callback).parameters)
+
+    class _DummyFuture:
+        def cancel(self) -> None:
+            return None
+
+        def set_exception(self, exc: BaseException) -> None:
+            return None
+
+        def set_result(self, result: Any) -> None:
+            return None
+
+    fut = _DummyFuture()
+
+    def invoke(cache_key: int) -> None:
+        if param_count == 1:
+            callback(task)
+        elif param_count == 2:
+            callback(cache_key, task)
+        else:
+            callback(fut, cache_key, task)
 
     @benchmark
     def run() -> None:
         for i in iterations:
-            callback(i, task)
+            invoke(i)
 
 
 @pytest.mark.parametrize("func", only_faster_funcs, ids=func_ids)
@@ -541,8 +581,29 @@ def test_faster_internal_task_done_callback_microbenchmark(
 
     iterations = range(1000)
     callback = func._task_done_callback
+    param_count = len(inspect.signature(callback).parameters)
+
+    class _DummyFuture:
+        def cancel(self) -> None:
+            return None
+
+        def set_exception(self, exc: BaseException) -> None:
+            return None
+
+        def set_result(self, result: Any) -> None:
+            return None
+
+    fut = _DummyFuture()
+
+    def invoke(cache_key: int) -> None:
+        if param_count == 1:
+            callback(task)
+        elif param_count == 2:
+            callback(cache_key, task)
+        else:
+            callback(fut, cache_key, task)
 
     @benchmark
     def run() -> None:
         for i in iterations:
-            callback(i, task)
+            invoke(i)

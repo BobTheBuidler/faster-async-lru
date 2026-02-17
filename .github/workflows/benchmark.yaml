@@ -4,17 +4,27 @@ on:
   pull_request:
     branches: [master, compile]
     paths:
-      - '**.py'
+      - '**/*.py'
       - '.github/workflows/benchmark.yaml'
+      - 'pytest-benchmark.ini'
+      - 'pytest-codspeed.ini'
       - 'pyproject.toml'
       - 'setup.py'
+      - 'setup.cfg'
+      - 'tox.ini'
+      - 'requirements*.txt'
   push:
     branches: [master, compile]
     paths:
-      - '**.py'
+      - '**/*.py'
       - '.github/workflows/benchmark.yaml'
+      - 'pytest-benchmark.ini'
+      - 'pytest-codspeed.ini'
       - 'pyproject.toml'
       - 'setup.py'
+      - 'setup.cfg'
+      - 'tox.ini'
+      - 'requirements*.txt'
   workflow_dispatch:
 
 concurrency:
@@ -31,14 +41,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.14"
-      - name: Install dependencies
+          cache: "pip"
+          cache-dependency-path: |
+            **/requirements*.txt
+            pyproject.toml
+            setup.cfg
+            setup.py
+            tox.ini
+      - name: Install tox
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt async-lru
-      - name: Remove python files
-        run: rm -r faster_async_lru
+          python -m pip install tox
       - name: Run Pytest Benchmark & Save Output
-        run: pytest --benchmark-only --benchmark-json=benchmark.json benchmark.py
+        run: tox -e benchmarks
       - name: Upload Pytest Benchmark Results
         uses: actions/upload-artifact@v4
         with:
@@ -102,9 +117,9 @@ jobs:
               body += '|----------|---------------|-------------|----------|-------------|----------|--------|\n';
               for (const [group, data] of Object.entries(groupDiffs).sort(([a], [b]) => a.localeCompare(b))) {
                 if (data.percent_change !== null && data.percent_change !== undefined) {
-                  let emoji = '➖';
-                  if (data.percent_change > 0) emoji = '✅';
-                  else if (data.percent_change < 0) emoji = '❌';
+                  let emoji = '';
+                  if (data.percent_change > 0) emoji = '';
+                  else if (data.percent_change < 0) emoji = '';
                   const percentChange = data.percent_change !== undefined && data.percent_change !== null
                     ? `${data.percent_change.toFixed(2)}%` : '';
                   const speedupPercent = data.speedup_percent !== undefined && data.speedup_percent !== null
@@ -113,7 +128,7 @@ jobs:
                     ? `${data.speedup_x.toFixed(2)}x` : '';
                   body += `| \`${group}\` | ${data.reference_mean} | ${data.faster_mean} | ${percentChange} | ${speedupPercent} | ${speedupX} | ${emoji} |\n`;
                 } else if (data.note) {
-                  body += `| \`${group}\` |  |  |  |  |  | ➖ |\n`;
+                  body += `| \`${group}\` |  |  |  |  |  |  |\n`;
                 }
               }
               body += '\n';
