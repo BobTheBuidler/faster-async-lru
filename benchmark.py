@@ -2,7 +2,6 @@ import asyncio
 import importlib
 import importlib.machinery
 import importlib.util
-import inspect
 import sys
 from pathlib import Path
 from typing import Any, Callable
@@ -560,17 +559,10 @@ def test_internal_task_done_callback_microbenchmark(
 
     iterations = range(1000)
     callback = func._task_done_callback
-    needs_future = _task_done_callback_needs_future(callback)
-
     @benchmark
     def run() -> None:
-        if needs_future:
-            futures = [loop.create_future() for _ in iterations]
-            for fut, key in zip(futures, iterations):
-                callback(fut, key, task)
-        else:
-            for key in iterations:
-                callback(key, task)
+        for key in iterations:
+            callback(key, task)
 
 
 @pytest.mark.parametrize("func", only_faster_funcs, ids=func_ids)
@@ -606,26 +598,7 @@ def test_faster_internal_task_done_callback_microbenchmark(
 
     iterations = range(1000)
     callback = func._task_done_callback
-    needs_future = _task_done_callback_needs_future(callback)
-
     @benchmark
     def run() -> None:
-        if needs_future:
-            futures = [loop.create_future() for _ in iterations]
-            for fut, key in zip(futures, iterations):
-                callback(fut, key, task)
-        else:
-            for key in iterations:
-                callback(key, task)
-
-
-def _task_done_callback_needs_future(callback: Callable[..., Any]) -> bool:
-    try:
-        params = list(inspect.signature(callback).parameters.values())
-    except (TypeError, ValueError):
-        return False
-
-    if len(params) < 3:
-        return False
-
-    return params[0].name in {"fut", "future"}
+        for key in iterations:
+            callback(key, task)
