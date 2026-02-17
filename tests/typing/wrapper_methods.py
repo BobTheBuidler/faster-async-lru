@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from typing import Optional, Union
 
+from typing_extensions import assert_type
+
 from faster_async_lru import (
     _CacheInfo,
     _CacheParameters,
@@ -12,8 +14,6 @@ from faster_async_lru import (
     _LRUCacheWrapperInstanceMethod,
     alru_cache,
 )
-
-from typing_extensions import assert_type
 
 
 @alru_cache

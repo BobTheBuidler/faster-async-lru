@@ -23,7 +23,7 @@ async def test_alru_cache_removing_lru_keys(check_lru: Callable[..., None]) -> N
 
 
 async def test_alru_cache_removing_lru_keys_with_full_displacement(
-    check_lru: Callable[..., None]
+    check_lru: Callable[..., None],
 ) -> None:
     @alru_cache(maxsize=3)
     async def coro(val: int) -> int:
