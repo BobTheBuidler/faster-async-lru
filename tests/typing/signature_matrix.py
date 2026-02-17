@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Optional
 
-from faster_async_lru import _LRUCacheWrapper, alru_cache
-
 from typing_extensions import assert_type
+
+from faster_async_lru import _LRUCacheWrapper, alru_cache
 
 
 @alru_cache
@@ -35,12 +35,12 @@ async def mixed_args(x: int, /, y: int, *values: int, scale: int = 1) -> int:
 
 
 @alru_cache
-async def optional_args(x: Optional[int] = None) -> Optional[int]:
+async def optional_args(x: int | None = None) -> int | None:
     return x
 
 
 @alru_cache
-async def kw_only_optional(*, x: Optional[int], y: Optional[str] = None) -> int:
+async def kw_only_optional(*, x: int | None, y: str | None = None) -> int:
     return 0 if x is None else x
 
 

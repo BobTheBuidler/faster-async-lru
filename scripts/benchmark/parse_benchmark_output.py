@@ -10,10 +10,10 @@ Usage:
 """
 
 import json
-import sys
 import re
+import sys
 from collections import defaultdict
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 def get_submodule(bench: dict) -> str:
@@ -66,7 +66,7 @@ def main() -> None:
         sys.exit(1)
     infile = sys.argv[1]
     outfile = sys.argv[2] if len(sys.argv) > 2 else "benchmark_results.json"
-    with open(infile, "r") as f:
+    with open(infile) as f:
         data = json.load(f)
     results = parse_pytest_benchmark_json(data)
     with open(outfile, "w") as f:
