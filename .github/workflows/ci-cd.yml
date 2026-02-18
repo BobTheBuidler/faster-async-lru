@@ -166,11 +166,7 @@ jobs:
         fix_issue_repl: "(#\\1)"
 
     - name: >-
-        Publish d
-d83d
-dc0d
-d83d
-dce6 to PyPI
+        Publish 🐍📦 to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
 
     - name: Sign the dists with Sigstore
