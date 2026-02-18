@@ -166,7 +166,7 @@ jobs:
         fix_issue_repl: "(#\\1)"
 
     - name: >-
-        Publish 0d
+        Publish d
 d83d
 dc0d
 d83d
