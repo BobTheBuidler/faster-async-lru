@@ -75,6 +75,7 @@ typedef struct {
     char ___closed;
     CPyTagged ___hits;
     CPyTagged ___misses;
+    PyObject *___first_loop;
 } async_lru____LRUCacheWrapperObject;
 
 typedef struct {
@@ -97,6 +98,7 @@ typedef struct {
     PyObject *___mypyc_generator_attribute__self;
     char ___mypyc_generator_attribute__wait;
     int32_t ___mypyc_next_label__;
+    PyObject *___mypyc_generator_attribute__loop;
     PyObject *___mypyc_generator_attribute__tasks;
     PyObject *___mypyc_generator_attribute__cancel_msg;
     PyObject *___mypyc_temp__0;
