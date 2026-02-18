@@ -16,11 +16,11 @@ async-lru
 
 .. image:: https://img.shields.io/matrix/aio-libs:matrix.org?label=Discuss%20on%20Matrix%20at%20%23aio-libs%3Amatrix.org&logo=matrix&server_fqdn=matrix.org&style=flat
    :target: https://matrix.to/#/%23aio-libs:matrix.org
-   :alt: Matrix Room — #aio-libs:matrix.org
+   :alt: Matrix Room 148 #aio-libs:matrix.org
 
 .. image:: https://img.shields.io/matrix/aio-libs-space:matrix.org?label=Discuss%20on%20Matrix%20at%20%23aio-libs-space%3Amatrix.org&logo=matrix&server_fqdn=matrix.org&style=flat
    :target: https://matrix.to/#/%23aio-libs-space:matrix.org
-   :alt: Matrix Space — #aio-libs-space:matrix.org
+   :alt: Matrix Space 148 #aio-libs-space:matrix.org
 
 Installation
 ------------
@@ -77,6 +77,18 @@ parameter (off by default):
     async def func(arg):
         return arg * 2
 
+To prevent thundering herd issues when many cache entries expire simultaneously,
+you can add ``jitter`` to randomize the TTL for each entry:
+
+.. code-block:: python
+
+    @alru_cache(ttl=3600, jitter=1800)
+    async def func(arg):
+        return arg * 2
+
+With ``ttl=3600, jitter=1800``, each cache entry will have a random TTL
+between 3600 and 5400 seconds, spreading out invalidations over time.
+
 
 The library supports explicit invalidation for specific function call by
 `cache_invalidate()`:
@@ -91,6 +103,53 @@ The library supports explicit invalidation for specific function call by
 
 The method returns `True` if corresponding arguments set was cached already, `False`
 otherwise.
+
+Limitations
+-----------
+
+**Event Loop Affinity**: ``alru_cache`` enforces that a cache instance is used with only
+one event loop. If you attempt to use a cached function from a different event loop than
+where it was first called, a ``RuntimeError`` will be raised:
+
+.. code-block:: text
+
+    RuntimeError: alru_cache is not safe to use across event loops: this cache
+    instance was first used with a different event loop.
+    Use separate cache instances per event loop.
+
+For typical asyncio applications using a single event loop, this is automatic and requires
+no configuration. If your application uses multiple event loops, create separate cache
+instances per loop:
+
+.. code-block:: python
+
+    import threading
+
+    _local = threading.local()
+
+    def get_cached_fetcher():
+        if not hasattr(_local, 'fetcher'):
+            @alru_cache(maxsize=100)
+            async def fetch_data(key):
+                ...
+            _local.fetcher = fetch_data
+        return _local.fetcher
+
+You can also reuse the logic of an already decorated function in a new loop by accessing ``__wrapped__``:
+
+.. code-block:: python
+
+    @alru_cache(maxsize=32)
+    async def my_task(x):
+        ...
+
+    # In Loop 1:
+    # my_task() uses the default global cache instance
+
+    # In Loop 2 (or a new thread):
+    # Create a fresh cache instance for the same logic
+    cached_task_loop2 = alru_cache(maxsize=32)(my_task.__wrapped__)
+    await cached_task_loop2(x)
 
 Benchmarks
 ----------

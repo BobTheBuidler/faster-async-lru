@@ -4,8 +4,9 @@ import functools
 import inspect
 import logging
 import os
+import random
 import sys
-from asyncio.coroutines import _is_coroutine  # type: ignore[attr-defined]
+from functools import _CacheInfo, _make_key, partial, partialmethod
 from typing import (
     Any,
     Callable,
@@ -35,19 +36,19 @@ if sys.version_info < (3, 14):
     from asyncio.coroutines import _is_coroutine  # type: ignore[attr-defined]
 
 
-__version__ = "2.0.5"
+__version__ = "2.1.0"
 
 __all__ = ("alru_cache",)
 
-
 ALLOW_SYNC: Final = os.environ.get("ASYNC_LRU_ALLOW_SYNC")
 """When set, allows wrapping sync callables by bypassing coroutine checks."""
+
 
 _T = TypeVar("_T")
 _R = TypeVar("_R")
 _Coro = Coroutine[Any, Any, _R]
 _CB = Callable[..., _Coro[_R]]
-_CBP = Union[_CB[_R], functools.partial[_Coro[_R]], functools.partialmethod[_Coro[_R]]]
+_CBP = Union[_CB[_R], "partial[_Coro[_R]]", "partialmethod[_Coro[_R]]"]
 
 _PYTHON_GTE_312: Final = sys.version_info >= (3, 12)
 
@@ -87,7 +88,6 @@ class _CacheItem(Generic[_R]):
 
 
 @final
-#@mypyc_attr(native_class=False)
 class _LRUCacheWrapper(Generic[_R]):
     def __init__(
         self,
@@ -95,6 +95,7 @@ class _LRUCacheWrapper(Generic[_R]):
         maxsize: Optional[int],
         typed: bool,
         ttl: Optional[float],
+        jitter: Optional[float],
     ) -> None:
         try:
             self.__module__: Final = fn.__module__
@@ -117,7 +118,7 @@ class _LRUCacheWrapper(Generic[_R]):
         except AttributeError:
             pass
         try:
-            self.__dict__ = dict(fn.__dict__)
+            self.__dict__.update(fn.__dict__)
         except AttributeError:
             pass
         # set __wrapped__ last so we don't inadvertently copy it
@@ -128,14 +129,17 @@ class _LRUCacheWrapper(Generic[_R]):
         self.__maxsize: Final = maxsize
         self.__typed: Final = typed
         self.__ttl: Final = ttl
+        self.__jitter: Final = jitter
         self.__cache: Final[OrderedDict[Hashable, _CacheItem[_R]]] = OrderedDict()
         self.__closed = False
         self.__hits = 0
         self.__misses = 0
+        self.__first_loop: Optional[asyncio.AbstractEventLoop] = None
 
     @property
     def __tasks(self) -> List["asyncio.Task[_R]"]:
-        # NOTE: I don't think we need to form a set first here but not too sure we want it for guarantees
+        # NOTE: I don't think we need to form a set first here but not
+        # too sure we want it for guarantees
         return list(
             {
                 cache_item.task
@@ -143,6 +147,16 @@ class _LRUCacheWrapper(Generic[_R]):
                 if not cache_item.task.done()
             }
         )
+
+    def _check_loop(self, loop: asyncio.AbstractEventLoop) -> None:
+        if self.__first_loop is None:
+            self.__first_loop = loop
+        elif self.__first_loop is not loop:
+            raise RuntimeError(
+                "alru_cache is not safe to use across event loops: this cache "
+                "instance was first used with a different event loop. "
+                "Use separate cache instances per event loop."
+            )
 
     def cache_invalidate(self, /, *args: Hashable, **kwargs: Any) -> bool:
         key = _make_key(args, kwargs, self.__typed)
@@ -164,6 +178,8 @@ class _LRUCacheWrapper(Generic[_R]):
         self.__cache.clear()
 
     async def cache_close(self, *, wait: bool = False) -> None:
+        loop = get_running_loop()
+        self._check_loop(loop)
         self.__closed = True
 
         tasks = self.__tasks
@@ -171,14 +187,13 @@ class _LRUCacheWrapper(Generic[_R]):
             return
 
         if not wait:
-            cancel_msg = f"{self} is closed"
             for task in tasks:
                 if not task.done():
-                    task.cancel(cancel_msg)
+                    task.cancel()
 
         await gather(*tasks, return_exceptions=True)
 
-    def cache_info(self) -> functools._CacheInfo:
+    def cache_info(self) -> _CacheInfo:
         return _CacheInfo(
             self.__hits,
             self.__misses,
@@ -209,13 +224,14 @@ class _LRUCacheWrapper(Generic[_R]):
             self.__cache.pop(key, None)
             return
 
-        cache = self.__cache
-        cache_item = cache.get(key)
-        ttl = self.__ttl
-        if ttl is not None and cache_item is not None:
-            loop = asyncio.get_running_loop()
+        cache_item = self.__cache.get(key)
+        if self.__ttl is not None and cache_item is not None:
+            effective_ttl = self.__ttl
+            if self.__jitter is not None:
+                effective_ttl += random.uniform(0, self.__jitter)
+            loop = get_running_loop()
             cache_item.later_call = loop.call_later(
-                ttl, cache.pop, key, None
+                effective_ttl, self.__cache.pop, key, None
             )
 
     async def _shield_and_handle_cancelled_error(
@@ -224,13 +240,13 @@ class _LRUCacheWrapper(Generic[_R]):
         task = cache_item.task
         try:
             # All waiters await the same shielded task.
-            return await asyncio.shield(task)
+            return await shield(task)
         except asyncio.CancelledError:
             # If this is the last waiter and the underlying task is not done,
             # cancel the underlying task and remove the cache entry.
             if cache_item.waiters == 1 and not task.done():
                 cache_item.cancel()  # Cancel TTL expiration
-                task.cancel(f"alru_cache {task} has no more waiters")  # Cancel the running coroutine
+                task.cancel()  # Cancel the running coroutine
                 self.__cache.pop(key, None)  # Remove from cache
             raise
         finally:
@@ -238,40 +254,35 @@ class _LRUCacheWrapper(Generic[_R]):
             cache_item.waiters -= 1
 
     async def __call__(self, /, *fn_args: Any, **fn_kwargs: Any) -> _R:
-        task: asyncio.Task[_R]
-
         if self.__closed:
             raise RuntimeError(f"alru_cache is closed for {self}")
 
         loop = get_running_loop()
+        self._check_loop(loop)
 
         key = _make_key(fn_args, fn_kwargs, self.__typed)
 
-        cache = self.__cache
-
-        cache_item = cache.get(key)
+        cache_item = self.__cache.get(key)
 
         if cache_item is not None:
             self._cache_hit(key)
-            task = cache_item.task
             if not cache_item.task.done():
                 # Each logical waiter increments waiters on entry.
                 cache_item.waiters += 1
                 return await self._shield_and_handle_cancelled_error(cache_item, key)
 
             # If the task is already done, just return the result.
-            return task.result()
+            return cache_item.task.result()
 
         coro = self.__wrapped__(*fn_args, **fn_kwargs)
-        task = loop.create_task(coro)
+        task: asyncio.Task[_R] = loop.create_task(coro)
         task.add_done_callback(partial(self._task_done_callback, key))
 
         cache_item = _CacheItem(task, None, 1)
-        cache[key] = cache_item
+        self.__cache[key] = cache_item
 
-        maxsize = self.__maxsize
-        if maxsize is not None and len(cache) > maxsize:
-            dropped_key, dropped_cache_item = cache.popitem(last=False)
+        if self.__maxsize is not None and len(self.__cache) > self.__maxsize:
+            dropped_key, dropped_cache_item = self.__cache.popitem(last=False)
             dropped_cache_item.cancel()
 
         self._cache_miss(key)
@@ -288,7 +299,6 @@ class _LRUCacheWrapper(Generic[_R]):
 
 
 @final
-#@mypyc_attr(native_class=False)
 class _LRUCacheWrapperInstanceMethod(Generic[_R, _T]):
     def __init__(
         self,
@@ -316,7 +326,7 @@ class _LRUCacheWrapperInstanceMethod(Generic[_R, _T]):
         except AttributeError:
             pass
         try:
-            self.__dict__ = dict(wrapper.__dict__)
+            self.__dict__.update(wrapper.__dict__)
         except AttributeError:
             pass
         # set __wrapped__ last so we don't inadvertently copy it
@@ -338,7 +348,7 @@ class _LRUCacheWrapperInstanceMethod(Generic[_R, _T]):
     ) -> None:
         await self.__wrapper.cache_close()
 
-    def cache_info(self) -> functools._CacheInfo:
+    def cache_info(self) -> _CacheInfo:
         return self.__wrapper.cache_info()
 
     def cache_parameters(self) -> _CacheParameters:
@@ -352,7 +362,13 @@ def _make_wrapper(
     maxsize: Optional[int],
     typed: bool,
     ttl: Optional[float] = None,
+    jitter: Optional[float] = None,
 ) -> Callable[[_CBP[_R]], _LRUCacheWrapper[_R]]:
+    if jitter is not None and ttl is None:
+        raise ValueError("jitter requires ttl to be set")
+    if jitter is not None and jitter < 0:
+        raise ValueError("jitter must be non-negative")
+
     def wrapper(fn: _CBP[_R]) -> _LRUCacheWrapper[_R]:
         origin = fn
 
@@ -362,16 +378,26 @@ def _make_wrapper(
         if not asyncio.iscoroutinefunction(origin) and not ALLOW_SYNC:
             raise RuntimeError(f"Coroutine function is required, got {fn!r}")
 
-        # functools.partialmethod support
         if hasattr(fn, "_make_unbound_method"):
             fn = fn._make_unbound_method()
 
-        wrapper = _LRUCacheWrapper(cast(_CB[_R], fn), maxsize, typed, ttl)  # type: ignore [redundant-cast]
+        wrapper = _LRUCacheWrapper(cast(_CB[_R], fn), maxsize, typed, ttl, jitter)
         if _PYTHON_GTE_312:
-            wrapper = markcoroutinefunction(wrapper)  # type: ignore [misc]
-        return wrapper  # type: ignore [no-any-return]
+            wrapper = markcoroutinefunction(wrapper)
+        return wrapper
 
     return wrapper
+
+
+@overload
+def alru_cache(
+    maxsize: Optional[int] = 128,
+    typed: bool = False,
+    *,
+    ttl: Optional[float] = None,
+    jitter: Optional[float] = None,
+) -> Callable[[_CBP[_R]], _LRUCacheWrapper[_R]]:
+    ...
 
 
 @overload
@@ -382,28 +408,19 @@ def alru_cache(
     ...
 
 
-@overload
-def alru_cache(
-    maxsize: Optional[int] = 128,
-    typed: bool = False,
-    *,
-    ttl: Optional[float] = None,
-) -> Callable[[_CBP[_R]], _LRUCacheWrapper[_R]]:
-    ...
-
-
 def alru_cache(
     maxsize: Union[Optional[int], _CBP[_R]] = 128,
     typed: bool = False,
     *,
     ttl: Optional[float] = None,
+    jitter: Optional[float] = None,
 ) -> Union[Callable[[_CBP[_R]], _LRUCacheWrapper[_R]], _LRUCacheWrapper[_R]]:
     if maxsize is None or isinstance(maxsize, int):
-        return _make_wrapper(maxsize, typed, ttl)
+        return _make_wrapper(maxsize, typed, ttl, jitter)
     else:
         fn = cast(_CB[_R], maxsize)
 
         if callable(fn) or hasattr(fn, "_make_unbound_method"):
-            return _make_wrapper(128, False, None)(fn)
+            return _make_wrapper(128, False, None, None)(fn)
 
         raise NotImplementedError(f"{fn!r} decorating is not supported")
