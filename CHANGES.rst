@@ -4,6 +4,11 @@ CHANGES
 
 .. towncrier release notes start
 
+2.1.0 (2026-01-17)
+==================
+
+- Fixed DeprecationWarning from asyncio.iscoroutinefunction.
+
 2.0.5 (2025-03-16)
 ==================
 

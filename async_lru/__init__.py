@@ -61,6 +61,10 @@ get_running_loop: Final = asyncio.get_running_loop
 shield: Final = asyncio.shield
 
 markcoroutinefunction: Final = getattr(inspect, "markcoroutinefunction", None)
+if sys.version_info >= (3, 14):
+    iscoroutinefunction: Final = inspect.iscoroutinefunction
+else:
+    iscoroutinefunction: Final = asyncio.iscoroutinefunction
 
 logger: Final = logging.getLogger("async_lru_threadsafe")
 
@@ -359,7 +363,7 @@ def _make_wrapper(
         while isinstance(origin, (partial, partialmethod)):
             origin = origin.func
 
-        if not asyncio.iscoroutinefunction(origin) and not ALLOW_SYNC:
+        if not iscoroutinefunction(origin) and not ALLOW_SYNC:
             raise RuntimeError(f"Coroutine function is required, got {fn!r}")
 
         # functools.partialmethod support
