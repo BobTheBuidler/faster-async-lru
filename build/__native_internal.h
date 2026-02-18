@@ -6,7 +6,7 @@
 
 int CPyGlobalsInit(void);
 
-extern PyObject *CPyStatics[143];
+extern PyObject *CPyStatics[145];
 extern const char * const CPyLit_Str[];
 extern const char * const CPyLit_Bytes[];
 extern const char * const CPyLit_Int[];
@@ -73,6 +73,8 @@ extern char CPyDef__LRUCacheWrapper_____init__(PyObject *cpy_r_self, PyObject *c
 extern PyObject *CPyPy__LRUCacheWrapper_____init__(PyObject *self, PyObject *args, PyObject *kw);
 extern PyObject *CPyDef__LRUCacheWrapper_____tasks(PyObject *cpy_r_self);
 extern PyObject *CPyPy__LRUCacheWrapper_____tasks(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
+extern char CPyDef__LRUCacheWrapper____check_loop(PyObject *cpy_r_self, PyObject *cpy_r_loop);
+extern PyObject *CPyPy__LRUCacheWrapper____check_loop(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern char CPyDef__LRUCacheWrapper___cache_invalidate(PyObject *cpy_r_self, PyObject *cpy_r_args, PyObject *cpy_r_kwargs);
 extern PyObject *CPyPy__LRUCacheWrapper___cache_invalidate(PyObject *self, PyObject *const *args, size_t nargs, PyObject *kwnames);
 extern char CPyDef__LRUCacheWrapper___cache_clear(PyObject *cpy_r_self);
