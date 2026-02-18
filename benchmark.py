@@ -56,10 +56,17 @@ else:
 
 @pytest.fixture
 def loop():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    yield loop
-    loop.close()
+    # Save current loop to restore after the test
+    try:
+        old_loop = asyncio.get_running_loop()
+    except RuntimeError:
+        old_loop = None
+    new_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(new_loop)
+    yield new_loop
+    new_loop.close()
+    if old_loop is not None:
+        asyncio.set_event_loop(old_loop)
 
 
 @pytest.fixture
@@ -77,79 +84,125 @@ def run_loop(loop):
 
 
 # Bounded cache (LRU)
-@async_lru.alru_cache(maxsize=128)
-async def cached_func(x):
+async def _cached_func(x):
     return x
 
 
-@faster_async_lru.alru_cache(maxsize=128)
-async def faster_cached_func(x):
+def create_cached_func():
+    return async_lru.alru_cache(maxsize=128)(_cached_func)
+
+
+def create_faster_cached_func():
+    return faster_async_lru.alru_cache(maxsize=128)(_cached_func)
+
+
+async def _cached_func_ttl(x):
     return x
 
 
-@async_lru.alru_cache(maxsize=16, ttl=0.01)
-async def cached_func_ttl(x):
-    return x
+def create_cached_func_ttl():
+    return async_lru.alru_cache(maxsize=16, ttl=0.01)(_cached_func_ttl)
 
 
-@faster_async_lru.alru_cache(maxsize=16, ttl=0.01)
-async def faster_cached_func_ttl(x):
-    return x
+def create_faster_cached_func_ttl():
+    return faster_async_lru.alru_cache(maxsize=16, ttl=0.01)(_cached_func_ttl)
 
 
 # Unbounded cache (no maxsize)
-@async_lru.alru_cache()
-async def cached_func_unbounded(x):
+async def _cached_func_unbounded(x):
     return x
 
 
-@faster_async_lru.alru_cache()
-async def faster_cached_func_unbounded(x):
+def create_cached_func_unbounded():
+    return async_lru.alru_cache()(_cached_func_unbounded)
+
+
+def create_faster_cached_func_unbounded():
+    return faster_async_lru.alru_cache()(_cached_func_unbounded)
+
+
+async def _cached_func_unbounded_ttl(x):
     return x
 
 
-@async_lru.alru_cache(ttl=0.01)
-async def cached_func_unbounded_ttl(x):
-    return x
+def create_cached_func_unbounded_ttl():
+    return async_lru.alru_cache(ttl=0.01)(_cached_func_unbounded_ttl)
 
 
-@faster_async_lru.alru_cache(ttl=0.01)
-async def faster_cached_func_unbounded_ttl(x):
-    return x
+def create_faster_cached_func_unbounded_ttl():
+    return faster_async_lru.alru_cache(ttl=0.01)(_cached_func_unbounded_ttl)
 
 
-class Methods:
-    @async_lru.alru_cache(maxsize=128)
-    async def cached_meth(self, x):
-        return x
+def create_cached_meth():
+    class MethodsInstance:
+        @async_lru.alru_cache(maxsize=128)
+        async def cached_meth(self, x):
+            return x
 
-    @faster_async_lru.alru_cache(maxsize=128)
-    async def faster_cached_meth(self, x):
-        return x
+    return MethodsInstance().cached_meth
 
-    @async_lru.alru_cache(maxsize=16, ttl=0.01)
-    async def cached_meth_ttl(self, x):
-        return x
 
-    @faster_async_lru.alru_cache(maxsize=16, ttl=0.01)
-    async def faster_cached_meth_ttl(self, x):
-        return x
+def create_faster_cached_meth():
+    class MethodsInstance:
+        @faster_async_lru.alru_cache(maxsize=128)
+        async def cached_meth(self, x):
+            return x
 
-    @async_lru.alru_cache()
-    async def cached_meth_unbounded(self, x):
-        return x
+    return MethodsInstance().cached_meth
 
-    @faster_async_lru.alru_cache()
-    async def faster_cached_meth_unbounded(self, x):
-        return x
 
-    @async_lru.alru_cache(ttl=0.01)
-    async def cached_meth_unbounded_ttl(self, x):
-        return x
+def create_cached_meth_ttl():
+    class MethodsInstance:
+        @async_lru.alru_cache(maxsize=16, ttl=0.01)
+        async def cached_meth_ttl(self, x):
+            return x
 
-    @faster_async_lru.alru_cache(ttl=0.01)
-    async def faster_cached_meth_unbounded_ttl(self, x):
-        return x
+    return MethodsInstance().cached_meth_ttl
+
+
+def create_faster_cached_meth_ttl():
+    class MethodsInstance:
+        @faster_async_lru.alru_cache(maxsize=16, ttl=0.01)
+        async def cached_meth_ttl(self, x):
+            return x
+
+    return MethodsInstance().cached_meth_ttl
+
+
+def create_cached_meth_unbounded():
+    class MethodsInstance:
+        @async_lru.alru_cache()
+        async def cached_meth_unbounded(self, x):
+            return x
+
+    return MethodsInstance().cached_meth_unbounded
+
+
+def create_faster_cached_meth_unbounded():
+    class MethodsInstance:
+        @faster_async_lru.alru_cache()
+        async def cached_meth_unbounded(self, x):
+            return x
+
+    return MethodsInstance().cached_meth_unbounded
+
+
+def create_cached_meth_unbounded_ttl():
+    class MethodsInstance:
+        @async_lru.alru_cache(ttl=0.01)
+        async def cached_meth_unbounded_ttl(self, x):
+            return x
+
+    return MethodsInstance().cached_meth_unbounded_ttl
+
+
+def create_faster_cached_meth_unbounded_ttl():
+    class MethodsInstance:
+        @faster_async_lru.alru_cache(ttl=0.01)
+        async def cached_meth_unbounded_ttl(self, x):
+            return x
+
+    return MethodsInstance().cached_meth_unbounded_ttl
 
 
 async def uncached_func(x):
@@ -158,38 +211,38 @@ async def uncached_func(x):
 
 ids = ["bounded", "unbounded", "meth-bounded", "meth-unbounded"]
 funcs = [
-    cached_func,
-    cached_func_unbounded,
-    Methods.cached_meth,
-    Methods.cached_meth_unbounded,
+    create_cached_func,
+    create_cached_func_unbounded,
+    create_cached_meth,
+    create_cached_meth_unbounded,
 ]
 faster_funcs = [
-    faster_cached_func,
-    faster_cached_func_unbounded,
-    Methods.faster_cached_meth,
-    Methods.faster_cached_meth_unbounded,
+    create_faster_cached_func,
+    create_faster_cached_func_unbounded,
+    create_faster_cached_meth,
+    create_faster_cached_meth_unbounded,
 ]
 funcs_ttl = [
-    cached_func_ttl,
-    cached_func_unbounded_ttl,
-    Methods.cached_meth_ttl,
-    Methods.cached_meth_unbounded_ttl,
+    create_cached_func_ttl,
+    create_cached_func_unbounded_ttl,
+    create_cached_meth_ttl,
+    create_cached_meth_unbounded_ttl,
 ]
 faster_funcs_ttl = [
-    faster_cached_func_ttl,
-    faster_cached_func_unbounded_ttl,
-    Methods.faster_cached_meth_ttl,
-    Methods.faster_cached_meth_unbounded_ttl,
+    create_faster_cached_func_ttl,
+    create_faster_cached_func_unbounded_ttl,
+    create_faster_cached_meth_ttl,
+    create_faster_cached_meth_unbounded_ttl,
 ]
 
 
-@pytest.mark.parametrize("func", funcs, ids=ids)
+@pytest.mark.parametrize("factory", funcs, ids=ids)
 def test_cache_hit_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], async_lru._LRUCacheWrapper[Any]],
 ) -> None:
-    # Populate cache
+    func = factory()
     keys = list(range(10))
     for key in keys:
         run_loop(func, key)
@@ -202,13 +255,13 @@ def test_cache_hit_benchmark(
     benchmark(run_loop, run)
 
 
-@pytest.mark.parametrize("func", faster_funcs, ids=ids)
+@pytest.mark.parametrize("factory", faster_funcs, ids=ids)
 def test_faster_cache_hit_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: faster_async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], faster_async_lru._LRUCacheWrapper[Any]],
 ) -> None:
-    # Populate cache
+    func = factory()
     keys = list(range(10))
     for key in keys:
         run_loop(func, key)
@@ -221,12 +274,13 @@ def test_faster_cache_hit_benchmark(
     benchmark(run_loop, run)
 
 
-@pytest.mark.parametrize("func", funcs, ids=ids)
+@pytest.mark.parametrize("factory", funcs, ids=ids)
 def test_cache_miss_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], async_lru._LRUCacheWrapper[Any]],
 ) -> None:
+    func = factory()
     unique_objects = [object() for _ in range(128)]
     func.cache_clear()
 
@@ -237,12 +291,13 @@ def test_cache_miss_benchmark(
     benchmark(run_loop, run)
 
 
-@pytest.mark.parametrize("func", faster_funcs, ids=ids)
+@pytest.mark.parametrize("factory", faster_funcs, ids=ids)
 def test_faster_cache_miss_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: faster_async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], faster_async_lru._LRUCacheWrapper[Any]],
 ) -> None:
+    func = factory()
     unique_objects = [object() for _ in range(128)]
     func.cache_clear()
 
@@ -253,61 +308,65 @@ def test_faster_cache_miss_benchmark(
     benchmark(run_loop, run)
 
 
-@pytest.mark.parametrize("func", funcs, ids=ids)
+@pytest.mark.parametrize("factory", funcs, ids=ids)
 def test_cache_clear_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], async_lru._LRUCacheWrapper[Any]],
 ) -> None:
+    func = factory()
     for i in range(100):
         run_loop(func, i)
 
     benchmark(func.cache_clear)
 
 
-@pytest.mark.parametrize("func", faster_funcs, ids=ids)
+@pytest.mark.parametrize("factory", faster_funcs, ids=ids)
 def test_faster_cache_clear_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: faster_async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], faster_async_lru._LRUCacheWrapper[Any]],
 ) -> None:
+    func = factory()
     for i in range(100):
         run_loop(func, i)
 
     benchmark(func.cache_clear)
 
 
-@pytest.mark.parametrize("func_ttl", funcs_ttl, ids=ids)
+@pytest.mark.parametrize("factory", funcs_ttl, ids=ids)
 def test_cache_ttl_expiry_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func_ttl: async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], async_lru._LRUCacheWrapper[Any]],
 ) -> None:
+    func_ttl = factory()
     run_loop(func_ttl, 99)
     run_loop(asyncio.sleep, 0.02)
 
     benchmark(run_loop, func_ttl, 99)
 
 
-@pytest.mark.parametrize("func_ttl", faster_funcs_ttl, ids=ids)
+@pytest.mark.parametrize("factory", faster_funcs_ttl, ids=ids)
 def test_faster_cache_ttl_expiry_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func_ttl: faster_async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], faster_async_lru._LRUCacheWrapper[Any]],
 ) -> None:
+    func_ttl = factory()
     run_loop(func_ttl, 99)
     run_loop(asyncio.sleep, 0.02)
 
     benchmark(run_loop, func_ttl, 99)
 
 
-@pytest.mark.parametrize("func", funcs, ids=ids)
+@pytest.mark.parametrize("factory", funcs, ids=ids)
 def test_cache_invalidate_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], async_lru._LRUCacheWrapper[Any]],
 ) -> None:
-    # Populate cache
+    func = factory()
     keys = list(range(123, 321))
     for i in keys:
         run_loop(func, i)
@@ -320,13 +379,13 @@ def test_cache_invalidate_benchmark(
             invalidate(i)
 
 
-@pytest.mark.parametrize("func", faster_funcs, ids=ids)
+@pytest.mark.parametrize("factory", faster_funcs, ids=ids)
 def test_faster_cache_invalidate_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: faster_async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], faster_async_lru._LRUCacheWrapper[Any]],
 ) -> None:
-    # Populate cache
+    func = factory()
     keys = list(range(123, 321))
     for i in keys:
         run_loop(func, i)
@@ -339,13 +398,13 @@ def test_faster_cache_invalidate_benchmark(
             invalidate(i)
 
 
-@pytest.mark.parametrize("func", funcs, ids=ids)
+@pytest.mark.parametrize("factory", funcs, ids=ids)
 def test_cache_info_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], async_lru._LRUCacheWrapper[Any]],
 ) -> None:
-    # Populate cache
+    func = factory()
     keys = list(range(1000))
     for i in keys:
         run_loop(func, i)
@@ -358,13 +417,13 @@ def test_cache_info_benchmark(
             cache_info()
 
 
-@pytest.mark.parametrize("func", faster_funcs, ids=ids)
+@pytest.mark.parametrize("factory", faster_funcs, ids=ids)
 def test_faster_cache_info_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: faster_async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], faster_async_lru._LRUCacheWrapper[Any]],
 ) -> None:
-    # Populate cache
+    func = factory()
     keys = list(range(1000))
     for i in keys:
         run_loop(func, i)
@@ -377,13 +436,13 @@ def test_faster_cache_info_benchmark(
             cache_info()
 
 
-@pytest.mark.parametrize("func", funcs, ids=ids)
+@pytest.mark.parametrize("factory", funcs, ids=ids)
 def test_concurrent_cache_hit_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], async_lru._LRUCacheWrapper[Any]],
 ) -> None:
-    # Populate cache
+    func = factory()
     keys = list(range(600, 700))
     for key in keys:
         run_loop(func, key)
@@ -396,13 +455,13 @@ def test_concurrent_cache_hit_benchmark(
     benchmark(run_loop, gather_coros)
 
 
-@pytest.mark.parametrize("func", faster_funcs, ids=ids)
+@pytest.mark.parametrize("factory", faster_funcs, ids=ids)
 def test_faster_concurrent_cache_hit_benchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: faster_async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], faster_async_lru._LRUCacheWrapper[Any]],
 ) -> None:
-    # Populate cache
+    func = factory()
     keys = list(range(600, 700))
     for key in keys:
         run_loop(func, key)
@@ -418,15 +477,15 @@ def test_faster_concurrent_cache_hit_benchmark(
 def test_cache_fill_eviction_benchmark(
     benchmark: BenchmarkFixture, run_loop: Callable[..., Any]
 ) -> None:
-    # Populate cache
+    func = create_cached_func()
     for i in range(-128, 0):
-        run_loop(cached_func, i)
+        run_loop(func, i)
 
     keys = list(range(5000))
 
     async def fill():
         for k in keys:
-            await cached_func(k)
+            await func(k)
 
     benchmark(run_loop, fill)
 
@@ -434,15 +493,15 @@ def test_cache_fill_eviction_benchmark(
 def test_faster_cache_fill_eviction_benchmark(
     benchmark: BenchmarkFixture, run_loop: Callable[..., Any]
 ) -> None:
-    # Populate cache
+    func = create_faster_cached_func()
     for i in range(-128, 0):
-        run_loop(cached_func, i)
+        run_loop(func, i)
 
     keys = list(range(5000))
 
     async def fill():
         for k in keys:
-            await faster_cached_func(k)
+            await func(k)
 
     benchmark(run_loop, fill)
 
@@ -460,13 +519,14 @@ only_faster_funcs = faster_funcs[:2]
 func_ids = ids[:2]
 
 
-@pytest.mark.parametrize("func", only_funcs, ids=func_ids)
+@pytest.mark.parametrize("factory", only_funcs, ids=func_ids)
 def test_internal_cache_hit_microbenchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], async_lru._LRUCacheWrapper[Any]],
 ) -> None:
     """Directly benchmark _cache_hit (internal, sync) using parameterized funcs."""
+    func = factory()
     cache_hit = func._cache_hit
 
     # Populate cache
@@ -480,13 +540,14 @@ def test_internal_cache_hit_microbenchmark(
             cache_hit(i)
 
 
-@pytest.mark.parametrize("func", only_faster_funcs, ids=func_ids)
+@pytest.mark.parametrize("factory", only_faster_funcs, ids=func_ids)
 def test_faster_internal_cache_hit_microbenchmark(
     benchmark: BenchmarkFixture,
     run_loop: Callable[..., Any],
-    func: faster_async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], faster_async_lru._LRUCacheWrapper[Any]],
 ) -> None:
     """Directly benchmark _cache_hit (internal, sync) using parameterized funcs."""
+    func = factory()
     cache_hit = func._cache_hit
 
     # Populate cache
@@ -500,11 +561,12 @@ def test_faster_internal_cache_hit_microbenchmark(
             cache_hit(i)
 
 
-@pytest.mark.parametrize("func", only_funcs, ids=func_ids)
+@pytest.mark.parametrize("factory", only_funcs, ids=func_ids)
 def test_internal_cache_miss_microbenchmark(
-    benchmark: BenchmarkFixture, func: async_lru._LRUCacheWrapper[Any]
+    benchmark: BenchmarkFixture, factory: Callable[[], async_lru._LRUCacheWrapper[Any]]
 ) -> None:
     """Directly benchmark _cache_miss (internal, sync) using parameterized funcs."""
+    func = factory()
     cache_miss = func._cache_miss
 
     @benchmark
@@ -513,11 +575,12 @@ def test_internal_cache_miss_microbenchmark(
             cache_miss(i)
 
 
-@pytest.mark.parametrize("func", only_faster_funcs, ids=func_ids)
+@pytest.mark.parametrize("factory", only_faster_funcs, ids=func_ids)
 def test_faster_internal_cache_miss_microbenchmark(
-    benchmark: BenchmarkFixture, func: faster_async_lru._LRUCacheWrapper[Any]
+    benchmark: BenchmarkFixture, factory: Callable[[], faster_async_lru._LRUCacheWrapper[Any]]
 ) -> None:
     """Directly benchmark _cache_miss (internal, sync) using parameterized funcs."""
+    func = factory()
     cache_miss = func._cache_miss
 
     @benchmark
@@ -526,15 +589,16 @@ def test_faster_internal_cache_miss_microbenchmark(
             cache_miss(i)
 
 
-@pytest.mark.parametrize("func", only_funcs, ids=func_ids)
+@pytest.mark.parametrize("factory", only_funcs, ids=func_ids)
 @pytest.mark.parametrize("task_state", ["finished", "cancelled", "exception"])
 def test_internal_task_done_callback_microbenchmark(
     benchmark: BenchmarkFixture,
     loop: asyncio.BaseEventLoop,
-    func: async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], async_lru._LRUCacheWrapper[Any]],
     task_state: str,
 ) -> None:
     """Directly benchmark _task_done_callback (internal, sync) using parameterized funcs and task states."""
+    func = factory()
 
     # Create a dummy coroutine and task
     async def dummy_coro():
@@ -565,15 +629,16 @@ def test_internal_task_done_callback_microbenchmark(
             callback(key, task)
 
 
-@pytest.mark.parametrize("func", only_faster_funcs, ids=func_ids)
+@pytest.mark.parametrize("factory", only_faster_funcs, ids=func_ids)
 @pytest.mark.parametrize("task_state", ["finished", "cancelled", "exception"])
 def test_faster_internal_task_done_callback_microbenchmark(
     benchmark: BenchmarkFixture,
     loop: asyncio.BaseEventLoop,
-    func: faster_async_lru._LRUCacheWrapper[Any],
+    factory: Callable[[], faster_async_lru._LRUCacheWrapper[Any]],
     task_state: str,
 ) -> None:
     """Directly benchmark _task_done_callback (internal, sync) using parameterized funcs and task states."""
+    func = factory()
 
     # Create a dummy coroutine and task
     async def dummy_coro():
