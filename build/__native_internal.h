@@ -37,6 +37,7 @@ extern PyObject *CPyStatic_gather;
 extern PyObject *CPyStatic_get_running_loop;
 extern PyObject *CPyStatic_shield;
 extern PyObject *CPyStatic_markcoroutinefunction;
+extern PyObject *CPyStatic_iscoroutinefunction;
 extern PyObject *CPyStatic_logger;
 extern PyTypeObject *CPyType__CacheParameters;
 extern PyTypeObject *CPyType__CacheItem;
