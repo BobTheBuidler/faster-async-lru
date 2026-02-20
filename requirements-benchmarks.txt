@@ -1,7 +1,7 @@
 -e .
 -r requirements-test.txt
 
-async-lru==2.1.0
+async-lru==2.2.0
 pytest-codspeed==4.3.0
 pytest-benchmark==5.2.3
 pytest-cov==7.0.0
