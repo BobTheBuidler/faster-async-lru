@@ -40,7 +40,7 @@ jobs:
       - name: Run Pytest Benchmark & Save Output
         run: pytest --benchmark-only --benchmark-json=benchmark.json benchmark.py
       - name: Upload Pytest Benchmark Results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: pytest-benchmark-results
           path: benchmark.json
@@ -67,12 +67,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload Markdown Benchmark Results
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: markdown-benchmark-results
           path: benchmarks/results/*.md
       - name: Upload Pytest Benchmark Diff
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: pytest-benchmark-diff
           path: pytest_benchmark_diff.json
