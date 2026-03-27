@@ -18,4 +18,5 @@ All agents must follow these rules:
 12) Centralize pytest settings (flags, markers, ignore patterns, and targets) in pyproject.toml, pytest.ini, setup.cfg, or tox.ini; workflows/hooks should call pytest without inline args.
 13) This repo uses pytest. Run tests with python -m pytest (or make test) and keep pytest settings centralized in setup.cfg/pyproject/tox.ini.
 
+13) Replace them with ruff IF possible while ensuring behavior parity.
 Reference: https://www.conventionalcommits.org/en/v1.0.0/
